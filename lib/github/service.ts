@@ -1,233 +1,207 @@
-import { GITHUB_API_BASE_URL } from "@/lib/github/constants";
-import { slugify } from "@/lib/utils";
+import {
+  filterIssueResultsToIssues,
+  fetchGitHubRepository,
+  searchGitHubIssues,
+} from "@/lib/github/client";
+import { DEFAULT_GITHUB_LABELS, GITHUB_DEFAULT_RESULTS_PER_LABEL } from "@/lib/github/constants";
+import {
+  normalizeGitHubIssueToChallenge,
+  normalizeGitHubRepository,
+} from "@/lib/github/normalize";
 import type { ChallengeRecord, RepositoryRecord } from "@/types/domain";
 import type {
   GitHubChallengeFetchResult,
   GitHubIssueSearchItem,
-  GitHubRepositoryResponse,
-  GitHubSearchResponse,
 } from "@/types/github";
 
 type FetchGitHubChallengesOptions = {
-  labels: string[];
+  labels?: string[];
   limit: number;
 };
 
-function getGitHubHeaders() {
-  const token = process.env.GITHUB_TOKEN;
+function getRepositoryFullNameFromIssue(issue: GitHubIssueSearchItem) {
+  return issue.repository_url.replace("https://api.github.com/repos/", "");
+}
 
-  if (!token) {
-    return null;
+function toChallengeStatus(type: "unconfigured" | "rate_limited" | "network" | "response") {
+  switch (type) {
+    case "unconfigured":
+      return "unconfigured";
+    case "rate_limited":
+      return "rate_limited";
+    default:
+      return "error";
+  }
+}
+
+async function fetchIssuesByLabels(labels: string[], perLabel: number) {
+  const issues = new Map<string, GitHubIssueSearchItem>();
+  const messages: string[] = [];
+  let status: GitHubChallengeFetchResult["status"] = "ok";
+
+  for (const label of labels) {
+    const result = await searchGitHubIssues(
+      `label:"${label}" is:issue is:open archived:false no:assignee`,
+      perLabel,
+    );
+
+    if (!result.ok) {
+      status = toChallengeStatus(result.error.type);
+      messages.push(result.error.message);
+      continue;
+    }
+
+    for (const issue of filterIssueResultsToIssues(result.data.items)) {
+      issues.set(issue.node_id, issue);
+    }
   }
 
   return {
-    Accept: "application/vnd.github+json",
-    Authorization: `Bearer ${token}`,
-    "User-Agent": "open-source-bug-fix-arena",
-    "X-GitHub-Api-Version": "2022-11-28",
+    issues: Array.from(issues.values()),
+    status,
+    message: messages[0],
   };
 }
 
-async function fetchFromGitHub<T>(path: string, headers: HeadersInit) {
-
-  const response = await fetch(`${GITHUB_API_BASE_URL}${path}`, {
-    headers,
-    next: { revalidate: 1800 },
-  });
-
-  if (!response.ok) {
-    return null;
-  }
-
-  return (await response.json()) as T;
+async function fetchRepositoriesForIssues(issues: GitHubIssueSearchItem[]) {
+  return fetchGitHubRepositories(issues.map(getRepositoryFullNameFromIssue));
 }
 
-async function fetchIssuesForLabel(label: string, perLabel: number) {
-  const headers = getGitHubHeaders();
+export async function fetchGitHubRepositories(
+  fullNames: string[],
+) {
+  const repositories: Array<{ fullName: string; repository: RepositoryRecord }> =
+    [];
+  let status: GitHubChallengeFetchResult["status"] = "ok";
+  let message: string | undefined;
 
-  if (!headers) {
-    return null;
+  for (const fullName of new Set(fullNames)) {
+    const result = await fetchGitHubRepository(fullName);
+
+    if (!result.ok) {
+      if (status === "ok") {
+        status = toChallengeStatus(result.error.type);
+        message = result.error.message;
+      }
+
+      continue;
+    }
+
+    repositories.push({
+      fullName,
+      repository: normalizeGitHubRepository(result.data),
+    });
   }
-
-  const query = encodeURIComponent(
-    `label:"${label}" is:issue is:open archived:false no:assignee`,
-  );
-
-  const data = await fetchFromGitHub<GitHubSearchResponse>(
-    `/search/issues?q=${query}&sort=updated&order=desc&per_page=${perLabel}`,
-    headers,
-  );
-
-  return data?.items ?? null;
-}
-
-async function fetchRepositoryByFullName(fullName: string) {
-  const headers = getGitHubHeaders();
-
-  if (!headers) {
-    return null;
-  }
-
-  const data = await fetchFromGitHub<GitHubRepositoryResponse>(
-    `/repos/${fullName}`,
-    headers,
-  );
-
-  if (!data) {
-    return null;
-  }
-
-  const repository: RepositoryRecord = {
-    id: `github-repo-${data.id}`,
-    owner: data.owner.login,
-    name: data.name,
-    fullName: data.full_name,
-    description: data.description ?? "Open source repository",
-    language: data.language ?? "Unknown",
-    stars: data.stargazers_count,
-    openIssues: data.open_issues_count,
-    url: data.html_url,
-  };
-
-  return repository;
-}
-
-function toChallengeRecord(
-  issue: GitHubIssueSearchItem,
-  repository: RepositoryRecord,
-): ChallengeRecord {
-  const labels = issue.labels.map((label) => label.name);
-  const difficulty = labels.includes("good first issue")
-    ? "beginner"
-    : "intermediate";
 
   return {
-    id: `github-challenge-${issue.id}`,
-    slug: slugify(`${repository.name}-${issue.number}-${issue.title}`),
-    title: issue.title,
-    summary:
-      issue.body?.split("\n").find((line) => line.trim())?.trim() ??
-      "GitHub issue imported into the arena challenge catalog.",
-    body:
-      issue.body?.trim() ??
-      "No issue body was returned from GitHub. Open the original issue for full context.",
-    difficulty,
-    status: "open",
-    labels,
-    techStack: [repository.language, "GitHub workflow"],
-    repositoryId: repository.id,
-    repository,
-    issueNumber: issue.number,
-    issueUrl: issue.html_url,
-    source: "github",
-    estimatedMinutes: difficulty === "beginner" ? 60 : 90,
-    points: difficulty === "beginner" ? 120 : 160,
-    acceptanceCriteria: [
-      "Summarize the issue clearly enough for another contributor to act on it.",
-      "Identify likely files, modules, or docs surfaces before implementation.",
-      "Describe how the fix should be validated before opening a pull request.",
-    ],
-    workflowSteps: [
-      "Review the issue thread and inspect the likely source area in the repository.",
-      "Draft a scoped fix plan with risks, dependencies, and validation notes.",
-      "Prepare a reviewable workflow before converting the work into a code patch.",
-    ],
-    learningOutcomes: [
-      "Translate public issue context into a practical contribution plan.",
-      "Spot the difference between problem framing and implementation detail.",
-      "Practice writing validation notes before a PR exists.",
-    ],
-    recentActivity: [
-      {
-        id: `${issue.node_id}-opened`,
-        author: issue.user.login,
-        action: "Opened the issue on GitHub.",
-        date: issue.created_at,
-      },
-      {
-        id: `${issue.node_id}-updated`,
-        author: "maintainers",
-        action: `Issue remains active with ${issue.comments} comment(s) and recent maintainer attention.`,
-        date: issue.updated_at,
-      },
-    ],
+    repositories,
+    status,
+    message,
   };
+}
+
+function buildChallengesFromIssues(
+  issues: GitHubIssueSearchItem[],
+  repositories: Map<string, RepositoryRecord>,
+) {
+  return issues
+    .map((issue) => {
+      const fullName = getRepositoryFullNameFromIssue(issue);
+      const repository = repositories.get(fullName);
+
+      if (!repository) {
+        return null;
+      }
+
+      return normalizeGitHubIssueToChallenge(issue, repository);
+    })
+    .filter((challenge): challenge is ChallengeRecord => challenge !== null);
+}
+
+function mapRepositoriesByFullName(
+  repositories: Array<{ fullName: string; repository: RepositoryRecord }>,
+) {
+  return new Map(
+    repositories.map(({ fullName, repository }) => [fullName, repository]),
+  );
 }
 
 export async function fetchGitHubChallenges({
-  labels,
+  labels = DEFAULT_GITHUB_LABELS,
   limit,
 }: FetchGitHubChallengesOptions): Promise<GitHubChallengeFetchResult> {
-  if (!getGitHubHeaders()) {
+  const perLabel = Math.max(
+    1,
+    Math.min(
+      GITHUB_DEFAULT_RESULTS_PER_LABEL,
+      Math.ceil(limit / labels.length),
+    ),
+  );
+  const issueResult = await fetchIssuesByLabels(labels, perLabel);
+
+  if (issueResult.status === "unconfigured") {
     return {
       challenges: [],
       status: "unconfigured",
       message:
-        "GitHub integration is not configured, so the catalog is using the seeded sample issues.",
+        issueResult.message ??
+        "GitHub is not configured, so the app is using seeded sample issues.",
     };
   }
 
-  try {
-    const perLabel = Math.max(1, Math.ceil(limit / labels.length));
-    const issueGroups = await Promise.all(
-      labels.map((label) => fetchIssuesForLabel(label, perLabel)),
-    );
-    const failedLookups = issueGroups.some((issues) => issues === null);
-    const uniqueIssues = new Map<string, GitHubIssueSearchItem>();
+  const issues = issueResult.issues.slice(0, limit);
 
-    for (const issues of issueGroups) {
-      if (!issues) {
-        continue;
-      }
-
-      for (const issue of issues) {
-        uniqueIssues.set(issue.node_id, issue);
-      }
-    }
-
-    const issues = Array.from(uniqueIssues.values()).slice(0, limit);
-    const repositories = await Promise.all(
-      issues.map((issue) =>
-        fetchRepositoryByFullName(
-          issue.repository_url.replace(`${GITHUB_API_BASE_URL}/repos/`, ""),
-        ),
-      ),
-    );
-
-    const challenges = issues
-      .map((issue, index) => {
-        const repository = repositories[index];
-
-        if (!repository) {
-          return null;
-        }
-
-        return toChallengeRecord(issue, repository);
-      })
-      .filter((challenge): challenge is ChallengeRecord => challenge !== null);
-
-    if (challenges.length === 0) {
-      return {
-        challenges: [],
-        status: "error",
-        message:
-          "GitHub did not return usable issues for the current label query, so the catalog is falling back to sample data.",
-      };
-    }
-
-    return {
-      challenges,
-      status: failedLookups ? "error" : "ok",
-      message: failedLookups
-        ? "Some GitHub issue details could not be loaded, so the live catalog may be incomplete."
-        : undefined,
-    };
-  } catch {
+  if (issues.length === 0) {
     return {
       challenges: [],
-      status: "error",
+      status:
+        issueResult.status === "ok" ? "error" : issueResult.status,
       message:
-        "GitHub could not be reached right now, so the catalog is using the seeded sample issues.",
+        issueResult.message ??
+        "GitHub did not return any usable beginner-friendly issues for the current query.",
     };
   }
+
+  const repositoryResult = await fetchRepositoriesForIssues(issues);
+  const challenges = buildChallengesFromIssues(
+    issues,
+    mapRepositoriesByFullName(repositoryResult.repositories),
+  );
+
+  if (challenges.length === 0) {
+    return {
+      challenges: [],
+      status:
+        repositoryResult.status === "ok"
+          ? issueResult.status === "ok"
+            ? "error"
+            : issueResult.status
+          : repositoryResult.status,
+      message:
+        repositoryResult.message ??
+        issueResult.message ??
+        "GitHub returned issues, but repository enrichment failed before the challenges could be shown.",
+    };
+  }
+
+  if (issueResult.status !== "ok") {
+    return {
+      challenges,
+      status: issueResult.status,
+      message: issueResult.message,
+    };
+  }
+
+  if (repositoryResult.status !== "ok") {
+    return {
+      challenges,
+      status: repositoryResult.status,
+      message: repositoryResult.message,
+    };
+  }
+
+  return {
+    challenges,
+    status: "ok",
+  };
 }

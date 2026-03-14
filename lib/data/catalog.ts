@@ -71,7 +71,7 @@ function applyFilters(
 }
 
 function buildNotice(
-  status: "ok" | "unconfigured" | "error",
+  status: "ok" | "unconfigured" | "rate_limited" | "error",
   message?: string,
 ): ChallengeCatalogNotice | undefined {
   if (status === "ok" && !message) {
@@ -85,6 +85,16 @@ function buildNotice(
       message:
         message ??
         "GitHub is not configured, so the app is showing the seeded challenge catalog.",
+    };
+  }
+
+  if (status === "rate_limited") {
+    return {
+      tone: "warning",
+      title: "GitHub rate limit reached",
+      message:
+        message ??
+        "GitHub is temporarily rate limiting live requests, so the app is showing the seeded challenge catalog instead.",
     };
   }
 
