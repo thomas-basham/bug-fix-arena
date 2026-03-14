@@ -21,9 +21,21 @@ export function ChallengeSidebar({ challenge }: ChallengeSidebarProps) {
             </p>
           </div>
           <div className="rounded-2xl border border-line bg-white/70 p-4">
-            <p className="mono-label">Points</p>
+            <p className="mono-label">Reward points</p>
             <p className="mt-2 font-medium text-slate-900">
-              {viewModel.pointsLabel}
+              {viewModel.rewardPointsLabel}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-line bg-white/70 p-4">
+            <p className="mono-label">Completion bonus</p>
+            <p className="mt-2 font-medium text-slate-900">
+              {viewModel.completionPointsLabel}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-line bg-white/70 p-4">
+            <p className="mono-label">Total available</p>
+            <p className="mt-2 font-medium text-slate-900">
+              {viewModel.totalPointsLabel}
             </p>
           </div>
           <div className="rounded-2xl border border-line bg-white/70 p-4">
@@ -35,6 +47,9 @@ export function ChallengeSidebar({ challenge }: ChallengeSidebarProps) {
           <div className="rounded-2xl border border-line bg-white/70 p-4">
             <p className="mono-label">Status</p>
             <p className="mt-2 font-medium text-slate-900">{viewModel.statusLabel}</p>
+            <p className="mt-1 text-xs text-slate-500">
+              {viewModel.scoreTierLabel} scoring tier
+            </p>
           </div>
         </div>
       </div>

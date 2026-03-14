@@ -46,7 +46,7 @@ export default async function Home() {
                 href="/dashboard"
                 className="inline-flex items-center justify-center rounded-full border border-line bg-white/70 px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-white"
               >
-                Open Dashboard Shell
+                Open Dashboard
               </Link>
             </div>
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
@@ -116,14 +116,14 @@ export default async function Home() {
             detail="Ready for exploration"
           />
           <StatCard
-            label="Mock submissions"
-            value={overview.totalSubmissions.toString()}
-            detail="Used for dashboard scaffolding"
+            label="Tracked engagement states"
+            value={overview.totalEngagements.toString()}
+            detail="Saved, started, and completed"
           />
           <StatCard
             label="Points in play"
             value={overview.totalPoints.toString()}
-            detail="Scoring model placeholder"
+            detail="Manual completion points for now"
           />
         </section>
 

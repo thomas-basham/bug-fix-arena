@@ -9,6 +9,7 @@ export type ChallengeDiscoveryLabel =
 export const CHALLENGE_DIFFICULTIES = [
   "beginner",
   "intermediate",
+  "advanced",
 ] as const;
 
 export type ChallengeDifficulty = (typeof CHALLENGE_DIFFICULTIES)[number];
@@ -37,7 +38,9 @@ type ChallengeDifficultyMetadata = {
   label: string;
   description: string;
   defaultEstimatedMinutes: number;
-  defaultPoints: number;
+  rewardPoints: number;
+  completionPoints: number;
+  scoreTierLabel: "Easy" | "Medium" | "Hard";
 };
 
 export const CHALLENGE_DIFFICULTY_METADATA = {
@@ -45,13 +48,25 @@ export const CHALLENGE_DIFFICULTY_METADATA = {
     label: "Beginner",
     description: "Clear scope with a smaller validation surface.",
     defaultEstimatedMinutes: 60,
-    defaultPoints: 120,
+    rewardPoints: 80,
+    completionPoints: 20,
+    scoreTierLabel: "Easy",
   },
   intermediate: {
     label: "Intermediate",
     description: "Needs more repo context and regression planning.",
     defaultEstimatedMinutes: 90,
-    defaultPoints: 160,
+    rewardPoints: 120,
+    completionPoints: 30,
+    scoreTierLabel: "Medium",
+  },
+  advanced: {
+    label: "Advanced",
+    description: "Requires deeper repo context and a wider validation surface.",
+    defaultEstimatedMinutes: 120,
+    rewardPoints: 170,
+    completionPoints: 40,
+    scoreTierLabel: "Hard",
   },
 } as const satisfies Record<ChallengeDifficulty, ChallengeDifficultyMetadata>;
 
@@ -114,6 +129,11 @@ type SubmissionStatusMetadata = {
   badgeTone: "muted" | "accent" | "success" | "warning";
 };
 
+type ChallengeEngagementStatusMetadata = {
+  label: string;
+  badgeTone: "muted" | "accent" | "success";
+};
+
 export const SUBMISSION_STATUS_METADATA = {
   draft: {
     label: "Draft",
@@ -134,6 +154,24 @@ export const SUBMISSION_STATUS_METADATA = {
 } as const satisfies Record<
   "draft" | "submitted" | "accepted" | "rejected",
   SubmissionStatusMetadata
+>;
+
+export const CHALLENGE_ENGAGEMENT_STATUS_METADATA = {
+  saved: {
+    label: "Saved",
+    badgeTone: "muted",
+  },
+  started: {
+    label: "Started",
+    badgeTone: "accent",
+  },
+  completed: {
+    label: "Completed",
+    badgeTone: "success",
+  },
+} as const satisfies Record<
+  "saved" | "started" | "completed",
+  ChallengeEngagementStatusMetadata
 >;
 
 export const CHALLENGE_LANGUAGE_METADATA = {
@@ -182,6 +220,34 @@ export const SCORE_DEFAULTS = {
   rankLabel: "Arena Rookie",
 } as const;
 
+export const SCORE_STREAK_SETTINGS = {
+  enabled: false,
+  placeholderValue: 0,
+} as const;
+
+export const SCORE_RANK_THRESHOLDS = [
+  {
+    label: "Arena Legend",
+    minimumPoints: 1000,
+  },
+  {
+    label: "Arena Veteran",
+    minimumPoints: 600,
+  },
+  {
+    label: "Arena Regular",
+    minimumPoints: 250,
+  },
+  {
+    label: "Arena Contender",
+    minimumPoints: 100,
+  },
+  {
+    label: SCORE_DEFAULTS.rankLabel,
+    minimumPoints: 0,
+  },
+] as const;
+
 export function isChallengeDifficulty(
   value: string | undefined,
 ): value is ChallengeDifficulty {
@@ -193,12 +259,28 @@ export function getChallengeDifficultyMetadata(difficulty: ChallengeDifficulty) 
 }
 
 export function getChallengeDefaults(difficulty: ChallengeDifficulty) {
-  const { defaultEstimatedMinutes, defaultPoints } =
+  const { defaultEstimatedMinutes, rewardPoints } =
     getChallengeDifficultyMetadata(difficulty);
 
   return {
     estimatedMinutes: defaultEstimatedMinutes,
-    points: defaultPoints,
+    points: rewardPoints,
+  };
+}
+
+export function getChallengePointBreakdown(
+  difficulty: ChallengeDifficulty,
+  rewardPointsOverride?: number,
+) {
+  const metadata = getChallengeDifficultyMetadata(difficulty);
+  const rewardPoints = rewardPointsOverride ?? metadata.rewardPoints;
+  const completionPoints = metadata.completionPoints;
+
+  return {
+    rewardPoints,
+    completionPoints,
+    totalPoints: rewardPoints + completionPoints,
+    scoreTierLabel: metadata.scoreTierLabel,
   };
 }
 
@@ -207,9 +289,21 @@ export function inferChallengeDifficulty(
 ): ChallengeDifficulty {
   const normalizedLabels = labels.map((label) => label.trim().toLowerCase());
 
-  return normalizedLabels.includes(CHALLENGE_DISCOVERY_LABELS[0])
-    ? "beginner"
-    : "intermediate";
+  if (normalizedLabels.includes(CHALLENGE_DISCOVERY_LABELS[0])) {
+    return "beginner";
+  }
+
+  if (
+    normalizedLabels.some((label) =>
+      ["architecture", "compiler", "diagnostics", "parser", "performance"].includes(
+        label,
+      ),
+    )
+  ) {
+    return "advanced";
+  }
+
+  return "intermediate";
 }
 
 export function getChallengeStatusMetadata(status: "open" | "review" | "archived") {
@@ -230,6 +324,12 @@ export function getSubmissionStatusMetadata(
   status: "draft" | "submitted" | "accepted" | "rejected",
 ) {
   return SUBMISSION_STATUS_METADATA[status];
+}
+
+export function getChallengeEngagementStatusMetadata(
+  status: "saved" | "started" | "completed",
+) {
+  return CHALLENGE_ENGAGEMENT_STATUS_METADATA[status];
 }
 
 export function normalizeChallengeLanguage(language: string | null | undefined) {
@@ -266,4 +366,11 @@ export function getChallengeLanguageMetadata(language: string | null | undefined
     label: normalizedLanguage,
     shortLabel: normalizedLanguage.slice(0, 3).toUpperCase(),
   };
+}
+
+export function getScoreRankLabel(totalPoints: number) {
+  return (
+    SCORE_RANK_THRESHOLDS.find((rank) => totalPoints >= rank.minimumPoints)?.label ??
+    SCORE_DEFAULTS.rankLabel
+  );
 }

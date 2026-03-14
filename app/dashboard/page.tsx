@@ -1,26 +1,97 @@
 import Link from "next/link";
+import { DemoSessionForm } from "@/components/auth/demo-session-form";
 import { ChallengeGrid } from "@/components/challenges/challenge-grid";
+import { ChallengeEngagementSection } from "@/components/dashboard/challenge-engagement-section";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageContainer } from "@/components/layout/page-container";
-import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusBanner } from "@/components/ui/status-banner";
-import { buildSubmissionViewModel } from "@/lib/challenges/view-models";
-import {
-  getDashboardSnapshot,
-  getRecommendedChallenges,
-} from "@/lib/data/catalog";
-import { formatRelativeDate } from "@/lib/utils";
+import { getCurrentUser } from "@/lib/auth/session";
+import { getRecommendedChallenges } from "@/lib/data/catalog";
+import { getUserDashboardSnapshot } from "@/lib/engagement/service";
 
 export const metadata = {
   title: "Dashboard",
 };
 
 export default async function DashboardPage() {
-  const dashboard = getDashboardSnapshot();
-  const recommended = await getRecommendedChallenges(2);
+  const currentUser = await getCurrentUser();
+  const [recommended, dashboard] = await Promise.all([
+    getRecommendedChallenges(2),
+    currentUser ? getUserDashboardSnapshot(currentUser.id) : Promise.resolve(null),
+  ]);
+
+  if (!dashboard) {
+    return (
+      <AppShell>
+        <PageContainer className="py-10 md:py-14">
+          <section className="surface-card-strong p-8 md:p-10">
+            <SectionHeading
+              eyebrow="Demo Auth"
+              title="Sign in to start tracking saved challenges and earned score."
+              description="The first auth layer is intentionally lightweight. Sign in as the seeded demo contributor to bookmark issues, move them into progress, log manual completions, and appear on the leaderboard."
+            />
+            <div className="mt-8 flex flex-wrap gap-3">
+              <DemoSessionForm
+                mode="sign-in"
+                redirectTo="/dashboard"
+                className="inline-flex items-center rounded-full bg-slate-950 px-6 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+              />
+              <Link
+                href="/challenges"
+                className="inline-flex items-center rounded-full border border-line bg-white/80 px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-white"
+              >
+                Browse Challenges
+              </Link>
+              <Link
+                href="/leaderboard"
+                className="inline-flex items-center rounded-full border border-line bg-white/80 px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-white"
+              >
+                View Leaderboard
+              </Link>
+            </div>
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+              <StatCard label="Saved queue" value="Track later" />
+              <StatCard label="Started work" value="Continue here" />
+              <StatCard label="Manual completion" value="Points ready" />
+            </div>
+          </section>
+
+          {recommended.notice ? (
+            <div className="mt-8">
+              <StatusBanner notice={recommended.notice} />
+            </div>
+          ) : null}
+
+          <section className="mt-12">
+            <SectionHeading
+              eyebrow="Recommended Next"
+              title="You can still browse the arena before signing in."
+              description="The public challenge feed remains available. Sign in only when you want to persist progress in the dashboard."
+            />
+            <div className="mt-6">
+              <EmptyState
+                eyebrow="No Signed-In Activity"
+                title="Your saved and completed challenges will appear here."
+                description="Use the challenge detail page after signing in to save an issue, mark it as started, or complete it manually."
+                action={
+                  <Link
+                    href="/challenges"
+                    className="inline-flex items-center rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+                  >
+                    Open Challenge Feed
+                  </Link>
+                }
+              />
+            </div>
+          </section>
+        </PageContainer>
+      </AppShell>
+    );
+  }
+
   const avatarInitials =
     dashboard.user.avatarInitials ??
     dashboard.user.name
@@ -35,7 +106,14 @@ export default async function DashboardPage() {
       <PageContainer className="py-10 md:py-14">
         <section className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="surface-card-strong p-8">
-            <p className="mono-label">Workspace</p>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <p className="mono-label">Workspace</p>
+              <DemoSessionForm
+                mode="sign-out"
+                redirectTo="/"
+                className="inline-flex items-center rounded-full border border-line bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-white"
+              />
+            </div>
             <div className="mt-5 flex items-start gap-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-950 font-mono text-sm font-semibold uppercase tracking-[0.2em] text-white">
                 {avatarInitials}
@@ -59,67 +137,45 @@ export default async function DashboardPage() {
                 detail={dashboard.score.rankLabel}
               />
               <StatCard
-                label="Current streak"
-                value={`${dashboard.score.currentStreak} days`}
-                detail="Activity placeholder"
+                label="Saved"
+                value={dashboard.savedChallenges.length.toString()}
+                detail="Bookmarked for later"
               />
               <StatCard
                 label="Completed"
                 value={dashboard.score.completedChallenges.toString()}
-                detail="Accepted arena workflows"
+                detail="Manual completions so far"
               />
             </div>
           </div>
 
           <div className="surface-card p-8">
             <SectionHeading
-              eyebrow="Draft Pipeline"
-              title="Basic dashboard shell for an authenticated contributor view."
-              description="Auth is intentionally shallow in the MVP. This shell demonstrates the information architecture without implementing deep account flows yet."
+              eyebrow="Progress Overview"
+              title="The first engagement layer is now persistence-backed."
+              description="Saved, started, and completed challenge states are stored against the signed-in demo user, and the same records now power the first leaderboard and score summaries."
             />
-            {dashboard.submissions.length > 0 ? (
-              <div className="mt-6 space-y-4">
-                {dashboard.submissions.map((submission) => {
-                  const submissionViewModel =
-                    buildSubmissionViewModel(submission);
-
-                  return (
-                    <div
-                      key={submission.id}
-                      className="rounded-2xl border border-line bg-white/70 p-5"
-                    >
-                      <div className="flex flex-wrap items-center gap-3">
-                        <h2 className="text-lg font-semibold text-slate-950">
-                          {submission.title}
-                        </h2>
-                        <Badge tone={submissionViewModel.statusTone}>
-                          {submissionViewModel.statusLabel}
-                        </Badge>
-                        <span className="font-mono text-xs uppercase tracking-[0.22em] text-muted">
-                          updated {formatRelativeDate(submission.updatedAt)}
-                        </span>
-                      </div>
-                      <p className="mt-3 text-sm leading-7 text-slate-700">
-                        {submission.summary}
-                      </p>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {submission.checklist.map((item) => (
-                          <Badge key={item}>{item}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="mt-6">
-                <EmptyState
-                  eyebrow="No Drafts Yet"
-                  title="The workflow queue is empty."
-                  description="Saved workflow drafts and submitted challenge plans will appear here once the submission flow is wired beyond the current MVP shell."
-                />
-              </div>
-            )}
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <StatCard
+                label="Started"
+                value={dashboard.startedChallenges.length.toString()}
+                detail="Challenges currently in progress"
+              />
+              <StatCard
+                label="Completion mode"
+                value="Manual"
+                detail="Automated scoring can layer on later"
+              />
+            </div>
+            <div className="mt-6 rounded-2xl border border-line bg-white/70 p-5">
+              <p className="mono-label">How this works</p>
+              <p className="mt-3 text-sm leading-7 text-slate-700">
+                Saving creates a lightweight engagement record, starting moves it
+                into active work, and manual completion snapshots the awarded points
+                so leaderboard logic can be automated later without changing the
+                relationship model.
+              </p>
+            </div>
           </div>
         </section>
 
@@ -128,6 +184,33 @@ export default async function DashboardPage() {
             <StatusBanner notice={recommended.notice} />
           </div>
         ) : null}
+
+        <div className="mt-12 space-y-12">
+          <ChallengeEngagementSection
+            eyebrow="Saved Challenges"
+            title="Bookmarked issues waiting for a first pass."
+            description="These are the issues you saved without starting yet."
+            items={dashboard.savedChallenges}
+            emptyTitle="No challenges are saved yet."
+            emptyDescription="Bookmark a challenge from its detail page to keep it in your queue."
+          />
+          <ChallengeEngagementSection
+            eyebrow="Started Challenges"
+            title="Active work you already pulled into motion."
+            description="These challenges are currently in progress and ready to resume."
+            items={dashboard.startedChallenges}
+            emptyTitle="No challenges are started yet."
+            emptyDescription="Use the challenge detail page to move a saved issue into active work."
+          />
+          <ChallengeEngagementSection
+            eyebrow="Completed Challenges"
+            title="Manual completions already earning points."
+            description="Each completed item snapshots points now so automated scoring can evolve later."
+            items={dashboard.completedChallenges}
+            emptyTitle="No challenges are completed yet."
+            emptyDescription="Complete a challenge manually from its detail page to start building your score."
+          />
+        </div>
 
         <section className="mt-12 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="surface-card p-8">
@@ -138,17 +221,17 @@ export default async function DashboardPage() {
                   What comes next
                 </h2>
                 <p className="mt-3 text-sm leading-7 text-slate-700">
-                  The dashboard is where collaboration-grade features can land
-                  once the persistence and auth layers are real.
+                  The dashboard now has a real persistence layer for engagement.
+                  Next, that same model can power structured submissions, review,
+                  and verified score updates tied to real submissions.
                 </p>
               </div>
               <div className="rounded-2xl border border-line bg-white/70 p-5">
-                {/* TODO: Replace the static score panel with a real leaderboard once scoring is persisted. */}
-                {/* TODO: Surface contextual AI hints here after repository context and submission data are available. */}
+                {/* TODO: Replace manual completion with review-backed scoring once validation signals exist. */}
                 <p className="text-sm leading-7 text-slate-700">
-                  Leaderboard, AI hints, saved workflows, and review queues are
-                  intentionally deferred so the MVP stays focused on challenge
-                  discovery and structure.
+                  Manual completion is intentionally lightweight for the MVP, but
+                  the engagement model now stores the state transitions and awarded
+                  points needed for deeper scoring later.
                 </p>
               </div>
             </div>
@@ -158,13 +241,19 @@ export default async function DashboardPage() {
             >
               Pick Another Challenge
             </Link>
+            <Link
+              href="/leaderboard"
+              className="mt-3 inline-flex items-center rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+            >
+              View Leaderboard
+            </Link>
           </div>
 
           <div>
             <SectionHeading
               eyebrow="Recommended Next"
-              title="Suggested follow-up issues for this contributor profile."
-              description="These cards reuse the same challenge building blocks the public catalog uses, which keeps the MVP architecture aligned."
+              title="Suggested follow-up issues for the signed-in contributor."
+              description="The recommendation rail still reuses the public challenge catalog so engagement features do not change discovery behavior."
             />
             <div className="mt-6">
               <ChallengeGrid
@@ -173,7 +262,7 @@ export default async function DashboardPage() {
                   eyebrow: "No Recommendations",
                   title: "Fresh recommendations will appear here.",
                   description:
-                    "The recommendation rail is using the same challenge catalog service as the browse page. If the catalog is empty, this panel stays intentionally explicit.",
+                    "The recommendation rail uses the same challenge catalog service as the browse page, so it will populate as the discovery feed grows.",
                 }}
               />
             </div>

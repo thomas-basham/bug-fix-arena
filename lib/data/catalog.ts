@@ -3,17 +3,15 @@ import {
   CHALLENGE_CATALOG_PAGE_SIZE,
   CHALLENGE_DIFFICULTIES,
   CHALLENGE_STATUSES,
-  SCORE_DEFAULTS,
   isChallengeCatalogSort,
   isChallengeDifficulty,
   isChallengeStatus,
 } from "@/lib/config/challenges";
 import {
   mockChallenges,
+  mockChallengeEngagements,
   mockRepositories,
-  mockScores,
   mockSubmissions,
-  mockUsers,
 } from "@/lib/data/mock-data";
 import { DEFAULT_GITHUB_LABELS } from "@/lib/github/constants";
 import { fetchGitHubChallenges } from "@/lib/github/service";
@@ -25,9 +23,6 @@ import type {
   ChallengeFilterOptions,
   ChallengeRecord,
   ChallengeStatus,
-  DashboardSnapshot,
-  ScoreRecord,
-  UserRecord,
 } from "@/types/domain";
 
 type GetChallengeCatalogOptions = {
@@ -328,25 +323,6 @@ export async function getChallengeCatalog({
   };
 }
 
-function getFallbackDashboardUser(): UserRecord {
-  return {
-    id: "demo-user",
-    name: "Demo Contributor",
-    email: "demo@bugfixarena.dev",
-    githubUsername: "demo-contributor",
-    bio: "Fallback contributor profile used when the seeded dashboard user is unavailable.",
-    avatarInitials: "DC",
-  };
-}
-
-function getFallbackScore(userId: string): ScoreRecord {
-  return {
-    id: `score-${userId}`,
-    userId,
-    ...SCORE_DEFAULTS,
-  };
-}
-
 export async function getFeaturedChallenges(limit = 3) {
   return getChallengeCatalog({ limit, pageSize: limit, sort: "highest-reward" });
 }
@@ -374,25 +350,11 @@ export async function getChallengeBySlug(
   return mockChallenges.find((challenge) => challenge.slug === slug) ?? null;
 }
 
-export function getDashboardSnapshot(): DashboardSnapshot {
-  const user = mockUsers[0] ?? getFallbackDashboardUser();
-  const score =
-    mockScores.find((entry) => entry.userId === user.id) ??
-    getFallbackScore(user.id);
-
-  return {
-    user,
-    score,
-    submissions: mockSubmissions.filter(
-      (submission) => submission.userId === user.id,
-    ),
-  };
-}
-
 export function getPlatformOverview() {
   return {
     totalRepositories: mockRepositories.length,
     totalChallenges: mockChallenges.length,
+    totalEngagements: mockChallengeEngagements.length,
     totalSubmissions: mockSubmissions.length,
     totalPoints: mockChallenges.reduce(
       (sum, challenge) => sum + challenge.points,

@@ -55,8 +55,9 @@ export function ChallengeCard({ challenge, href }: ChallengeCardProps) {
       <div className="mt-6 flex items-center justify-between gap-4">
         <div className="space-y-1">
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-muted">
-            {viewModel.pointsLabel}
+            {viewModel.totalPointsLabel} total
           </p>
+          <p className="text-xs text-slate-500">{viewModel.rewardBreakdownLabel}</p>
           <p className="text-xs text-slate-500">
             updated {formatRelativeDate(challenge.updatedAt)}
           </p>

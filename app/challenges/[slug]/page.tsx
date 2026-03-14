@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ChallengeEngagementPanel } from "@/components/challenges/challenge-engagement-panel";
 import { ChallengeSidebar } from "@/components/challenges/challenge-sidebar";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageContainer } from "@/components/layout/page-container";
 import { Badge } from "@/components/ui/badge";
 import {
   buildChallengeCatalogHref,
+  buildChallengeDetailHref,
   parseChallengeCatalogUrlState,
 } from "@/lib/challenges/catalog-state";
+import { getCurrentUser } from "@/lib/auth/session";
 import { buildChallengeViewModel } from "@/lib/challenges/view-models";
 import { getChallengeBySlug } from "@/lib/data/catalog";
+import { getChallengeEngagementForUser } from "@/lib/engagement/service";
 import { formatRelativeDate } from "@/lib/utils";
 
 type ChallengeDetailPageProps = {
@@ -47,10 +51,16 @@ export default async function ChallengeDetailPage({
     notFound();
   }
 
-  const viewModel = buildChallengeViewModel(challenge);
-  const backHref = buildChallengeCatalogHref(
-    parseChallengeCatalogUrlState(await searchParams),
-  );
+  const catalogState = parseChallengeCatalogUrlState(await searchParams);
+  const [user, viewModel] = await Promise.all([
+    getCurrentUser(),
+    Promise.resolve(buildChallengeViewModel(challenge)),
+  ]);
+  const engagement = user
+    ? await getChallengeEngagementForUser(user.id, challenge.id)
+    : null;
+  const backHref = buildChallengeCatalogHref(catalogState);
+  const currentDetailHref = buildChallengeDetailHref(challenge.slug, catalogState);
 
   return (
     <AppShell>
@@ -63,6 +73,7 @@ export default async function ChallengeDetailPage({
             Back to Challenges
           </Link>
           <Badge tone={viewModel.sourceTone}>{viewModel.sourceLabel}</Badge>
+          <Badge tone="accent">{viewModel.totalPointsLabel} total</Badge>
           <Badge>{challenge.repository.fullName}</Badge>
         </div>
 
@@ -160,7 +171,15 @@ export default async function ChallengeDetailPage({
             </section>
           </article>
 
-          <ChallengeSidebar challenge={challenge} />
+          <div className="space-y-6">
+            <ChallengeEngagementPanel
+              challenge={challenge}
+              engagement={engagement}
+              redirectTo={currentDetailHref}
+              user={user}
+            />
+            <ChallengeSidebar challenge={challenge} />
+          </div>
         </section>
       </PageContainer>
     </AppShell>

@@ -11,7 +11,8 @@ briefs, and drafting a practical fix workflow before a pull request exists.
 - Falls back to a realistic seeded catalog when GitHub is unavailable or not
   configured
 - Lets developers browse a challenge feed, filter it, inspect a challenge in
-  detail, and view a lightweight dashboard shell
+  detail, sign in with a lightweight demo session, and track saved or completed
+  work in a persistence-backed dashboard
 - Frames each issue as a bug-fix workflow instead of trying to ship a full
   in-browser IDE too early
 
@@ -23,8 +24,13 @@ The current MVP includes:
 - Browse challenges page with filtering by language, difficulty, and label
 - Challenge detail page with issue context, activity, acceptance criteria, and
   workflow guidance
-- Dashboard shell with mock submission and scoring data
+- Lightweight cookie-based demo auth scaffold
+- Persistence-backed dashboard for saved, started, and manually completed
+  challenges
+- First-pass scoring and leaderboard pages backed by persisted score records
 - Prisma schema for `User`, `Repository`, `Challenge`, `Submission`, and `Score`
+- Prisma schema support for `ChallengeEngagement` so progress state can evolve
+  into automated scoring later
 - Seeded mock data reused by both the UI and database seed flow
 - GitHub service layer with graceful fallback notices and empty-state handling
 - Route-level loading states, global error handling, and not-found UX
@@ -49,8 +55,11 @@ Two decisions drive the MVP:
 
 1. GitHub fetching is optional. If `GITHUB_TOKEN` is absent or GitHub fails, the
    app stays usable by switching to seeded sample issues.
-2. The product stops at workflow planning for now. Auth depth, patch editing,
-   automated validation, and PR export are all intentionally deferred.
+2. Authentication is intentionally lightweight. A demo session cookie unlocks
+   progress tracking without adding OAuth complexity before the rest of the
+   product loop is proven.
+3. The product still stops at workflow planning for now. Patch editing,
+   automated validation, and PR export are intentionally deferred.
 
 ## Future Roadmap
 
@@ -58,8 +67,10 @@ Planned next steps after this MVP:
 
 - Persist challenge discovery and submissions through database-backed queries
 - Add a real submission flow for saved drafts and structured fix plans
-- Introduce authentication beyond the current shell-level assumptions
-- Add leaderboard, AI hints, test runner integration, and PR export flow
+- Replace the demo session cookie with GitHub-backed authentication when the
+  contribution workflow is ready for real identity
+- Add verified submission review, AI hints, test runner integration, and PR
+  export flow
 - Replace `db push`-only setup with tracked Prisma migrations for schema history
 
 ## Run Locally
@@ -78,13 +89,17 @@ DIRECT_URL=postgresql://postgres:postgres@localhost:5432/bug_fix_arena
 GITHUB_TOKEN=github_pat_replace_me
 ```
 
-- `DATABASE_URL` is the pooled app connection used by the runtime and seed flow
+- `DATABASE_URL` is the pooled app connection used by the runtime
 - `DIRECT_URL` is the direct database connection used for Prisma CLI commands,
-  which is especially important for providers like Supabase
+  migrations, and the seed flow, which is especially important for providers
+  like Supabase
 - `GITHUB_TOKEN` enables authenticated GitHub API access for live issue and
   repository fetching
 - `GITHUB_API_TIMEOUT_MS` controls how long the server waits on GitHub before
   falling back to the seeded mock catalog
+
+The auth scaffold does not currently require extra environment variables. The
+app uses a simple HTTP-only cookie to sign into the seeded demo contributor.
 
 3. Generate the Prisma client:
 
@@ -106,6 +121,9 @@ npm run dev
 ```
 
 Open `http://localhost:3000`.
+
+To use the engagement features, click `Demo Sign In` in the header or sign in
+from the dashboard or any challenge detail page.
 
 ## Useful Scripts
 

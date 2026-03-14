@@ -1,5 +1,6 @@
 import type {
   Challenge,
+  ChallengeEngagement,
   Prisma,
   Repository,
   Score,
@@ -12,6 +13,7 @@ export type RepositoryModel = Repository;
 export type ChallengeModel = Challenge;
 export type SubmissionModel = Submission;
 export type ScoreModel = Score;
+export type ChallengeEngagementModel = ChallengeEngagement;
 
 export type ChallengeWithRepositoryModel = Prisma.ChallengeGetPayload<{
   include: {
@@ -24,3 +26,14 @@ export type SubmissionWithChallengeModel = Prisma.SubmissionGetPayload<{
     challenge: true;
   };
 }>;
+
+export type ChallengeEngagementWithChallengeModel =
+  Prisma.ChallengeEngagementGetPayload<{
+    include: {
+      challenge: {
+        include: {
+          repository: true;
+        };
+      };
+    };
+  }>;

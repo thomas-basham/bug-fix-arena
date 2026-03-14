@@ -2,12 +2,15 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 import { config as loadEnv } from "dotenv";
 import {
+  toPrismaChallengeCompletionMethod,
+  toPrismaChallengeEngagementStatus,
   toPrismaChallengeSource,
   toPrismaChallengeStatus,
   toPrismaSubmissionStatus,
 } from "../lib/db/mappers";
 import {
   mockChallenges,
+  mockChallengeEngagements,
   mockRepositories,
   mockScores,
   mockSubmissions,
@@ -17,10 +20,12 @@ import {
 loadEnv({ path: ".env.local" });
 loadEnv();
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
 
 if (!connectionString) {
-  throw new Error("DATABASE_URL must be set before running the seed script.");
+  throw new Error(
+    "DIRECT_URL or DATABASE_URL must be set before running the seed script.",
+  );
 }
 
 const adapter = new PrismaPg({ connectionString });
@@ -28,6 +33,7 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   await prisma.submission.deleteMany();
+  await prisma.challengeEngagement.deleteMany();
   await prisma.challenge.deleteMany();
   await prisma.score.deleteMany();
   await prisma.repository.deleteMany();
@@ -97,6 +103,28 @@ async function main() {
         status: toPrismaSubmissionStatus(submission.status),
         challengeId: submission.challengeId,
         userId: submission.userId,
+      },
+    });
+  }
+
+  for (const engagement of mockChallengeEngagements) {
+    await prisma.challengeEngagement.create({
+      data: {
+        id: engagement.id,
+        userId: engagement.userId,
+        challengeId: engagement.challengeId,
+        status: toPrismaChallengeEngagementStatus(engagement.status),
+        completionMethod: engagement.completionMethod
+          ? toPrismaChallengeCompletionMethod(engagement.completionMethod)
+          : undefined,
+        pointsAwarded: engagement.pointsAwarded,
+        savedAt: new Date(engagement.savedAt),
+        startedAt: engagement.startedAt
+          ? new Date(engagement.startedAt)
+          : undefined,
+        completedAt: engagement.completedAt
+          ? new Date(engagement.completedAt)
+          : undefined,
       },
     });
   }

@@ -1,5 +1,11 @@
+import {
+  SCORE_DEFAULTS,
+  getChallengePointBreakdown,
+  getScoreRankLabel,
+} from "@/lib/config/challenges";
 import type {
   ChallengeActivity,
+  ChallengeEngagementRecord,
   ChallengeRecord,
   RepositoryRecord,
   ScoreRecord,
@@ -149,7 +155,7 @@ const challengeSeeds: Array<
     issueNumber: 56321,
     issueUrl: "https://github.com/vercel/next.js/issues/56321",
     estimatedMinutes: 75,
-    points: 120,
+    points: 80,
     acceptanceCriteria: [
       "Reproduction steps are explicit enough for another contributor to follow.",
       "The workflow identifies the rendering boundary where the fallback state is chosen.",
@@ -186,7 +192,7 @@ const challengeSeeds: Array<
     issueNumber: 21455,
     issueUrl: "https://github.com/prisma/prisma/issues/21455",
     estimatedMinutes: 60,
-    points: 110,
+    points: 80,
     acceptanceCriteria: [
       "The message rewrite explains what went wrong and what the developer should try next.",
       "The plan identifies the command path or helper where the message is composed.",
@@ -215,7 +221,7 @@ const challengeSeeds: Array<
       "Investigate a parser corner case and propose a minimal test-first workflow that keeps the change easy to review.",
     body:
       "The Tailwind issue centers on an arbitrary-value parser edge case where a valid string is tokenized incorrectly. The arena brief should guide a contributor toward isolating the parser rule, capturing the failing behavior with a regression test, and only then sketching the production fix.\n\nThis is a little closer to framework internals, so the best workflow is small, test-first, and explicit about adjacent parser risk.",
-    difficulty: "intermediate",
+    difficulty: "advanced",
     status: "open",
     labels: ["help wanted", "tests", "parser"],
     techStack: ["Tailwind CSS", "TypeScript", "Node.js"],
@@ -223,7 +229,7 @@ const challengeSeeds: Array<
     issueNumber: 18841,
     issueUrl: "https://github.com/tailwindlabs/tailwindcss/issues/18841",
     estimatedMinutes: 95,
-    points: 160,
+    points: 170,
     acceptanceCriteria: [
       "The failing case is reduced to the smallest useful input.",
       "The workflow adds coverage before describing the production fix.",
@@ -260,7 +266,7 @@ const challengeSeeds: Array<
     issueNumber: 14592,
     issueUrl: "https://github.com/withastro/astro/issues/14592",
     estimatedMinutes: 45,
-    points: 90,
+    points: 80,
     acceptanceCriteria: [
       "The revised wording addresses the actual point of confusion.",
       "Duplicate docs surfaces are identified before proposing the change.",
@@ -297,7 +303,7 @@ const challengeSeeds: Array<
     issueNumber: 18742,
     issueUrl: "https://github.com/eslint/eslint/issues/18742",
     estimatedMinutes: 55,
-    points: 100,
+    points: 80,
     acceptanceCriteria: [
       "The workflow pinpoints the rule metadata field or helper that produces the link.",
       "The proposed fix avoids broad changes to unrelated rule docs generation.",
@@ -334,7 +340,7 @@ const challengeSeeds: Array<
     issueNumber: 19234,
     issueUrl: "https://github.com/django/django/issues/19234",
     estimatedMinutes: 70,
-    points: 115,
+    points: 80,
     acceptanceCriteria: [
       "The relevant template or widget helper is identified clearly.",
       "The revised copy reflects the actual next action available to the user.",
@@ -363,7 +369,7 @@ const challengeSeeds: Array<
       "Review a Rust diagnostic wording issue and plan a fix that is easy to validate without touching multiple assists at once.",
     body:
       "A rust-analyzer issue notes that a note attached to an import-related assist reads awkwardly and makes the suggested action less obvious. The contributor should locate the assist or diagnostic builder, identify where the note text is assembled, and describe how to prove the new wording does not weaken test expectations elsewhere.\n\nBecause the issue sits close to compiler-like logic, keeping the wording change isolated and well-tested matters more than moving quickly.",
-    difficulty: "intermediate",
+    difficulty: "advanced",
     status: "open",
     labels: ["help wanted", "diagnostics", "ux"],
     techStack: ["Rust", "rust-analyzer", "Testing"],
@@ -371,7 +377,7 @@ const challengeSeeds: Array<
     issueNumber: 17602,
     issueUrl: "https://github.com/rust-lang/rust-analyzer/issues/17602",
     estimatedMinutes: 90,
-    points: 150,
+    points: 170,
     acceptanceCriteria: [
       "The diagnostic or assist builder owning the note text is identified.",
       "The wording change remains scoped to the reported behavior.",
@@ -400,7 +406,7 @@ const challengeSeeds: Array<
       "Inspect a Go-backed UI workflow where the template preview looks broken when no template is selected yet.",
     body:
       "A Gitea issue reports that the issue template preview panel appears broken or blank when a user first opens the page without choosing a template. The ideal arena workflow should identify the view or API response involved, capture the current behavior, and propose a safe UI fallback state.\n\nThe goal is not to ship the frontend patch in-browser yet, but to turn the issue into a tightly scoped implementation plan with clear validation notes.",
-    difficulty: "beginner",
+    difficulty: "intermediate",
     status: "open",
     labels: ["help wanted", "ui", "good first issue"],
     techStack: ["Go", "HTML templates", "Frontend state"],
@@ -408,7 +414,7 @@ const challengeSeeds: Array<
     issueNumber: 30219,
     issueUrl: "https://github.com/go-gitea/gitea/issues/30219",
     estimatedMinutes: 65,
-    points: 118,
+    points: 120,
     acceptanceCriteria: [
       "The current blank-state behavior is documented clearly.",
       "The plan identifies the template rendering or API path involved.",
@@ -439,6 +445,20 @@ export const mockChallenges: ChallengeRecord[] = challengeSeeds.map((seed) => ({
   source: "mock",
 }));
 
+const challengeById = new Map(
+  mockChallenges.map((challenge) => [challenge.id, challenge]),
+);
+
+function getAwardedPointsForChallenge(challengeId: string) {
+  const challenge = challengeById.get(challengeId);
+
+  if (!challenge) {
+    return 0;
+  }
+
+  return getChallengePointBreakdown(challenge.difficulty, challenge.points).totalPoints;
+}
+
 export const mockUsers: UserRecord[] = [
   {
     id: "user-1",
@@ -447,6 +467,30 @@ export const mockUsers: UserRecord[] = [
     githubUsername: "morganlee",
     bio: "Frontend engineer leveling up through open source bug triage and reviewable fix plans.",
     avatarInitials: "ML",
+  },
+  {
+    id: "user-2",
+    name: "Priya Shah",
+    email: "priya@example.com",
+    githubUsername: "priyashah",
+    bio: "Full-stack developer using the arena to turn promising issues into sharper review plans.",
+    avatarInitials: "PS",
+  },
+  {
+    id: "user-3",
+    name: "Jordan Kim",
+    email: "jordan@example.com",
+    githubUsername: "jordankim",
+    bio: "Open source contributor focused on reproducible bug reports and high-signal validation notes.",
+    avatarInitials: "JK",
+  },
+  {
+    id: "user-4",
+    name: "Alex Rivera",
+    email: "alex@example.com",
+    githubUsername: "alexrivera",
+    bio: "Product-minded engineer practicing smaller, cleaner OSS contributions across frameworks.",
+    avatarInitials: "AR",
   },
 ];
 
@@ -492,13 +536,157 @@ export const mockSubmissions: SubmissionRecord[] = [
   },
 ];
 
-export const mockScores: ScoreRecord[] = [
+export const mockChallengeEngagements: ChallengeEngagementRecord[] = [
   {
-    id: "score-1",
+    id: "engagement-1",
     userId: "user-1",
-    totalPoints: 580,
-    currentStreak: 7,
-    completedChallenges: 4,
-    rankLabel: "Arena qualifier",
+    challengeId: "challenge-next-loading-boundary",
+    status: "saved",
+    pointsAwarded: 0,
+    savedAt: new Date(Date.now() - 1 * 86_400_000).toISOString(),
+  },
+  {
+    id: "engagement-2",
+    userId: "user-1",
+    challengeId: "challenge-prisma-seed-errors",
+    status: "started",
+    pointsAwarded: 0,
+    savedAt: new Date(Date.now() - 5 * 86_400_000).toISOString(),
+    startedAt: new Date(Date.now() - 2 * 86_400_000).toISOString(),
+  },
+  {
+    id: "engagement-3",
+    userId: "user-1",
+    challengeId: "challenge-astro-onboarding-copy",
+    status: "completed",
+    completionMethod: "manual",
+    pointsAwarded: getAwardedPointsForChallenge("challenge-astro-onboarding-copy"),
+    savedAt: new Date(Date.now() - 14 * 86_400_000).toISOString(),
+    startedAt: new Date(Date.now() - 12 * 86_400_000).toISOString(),
+    completedAt: new Date(Date.now() - 10 * 86_400_000).toISOString(),
+  },
+  {
+    id: "engagement-4",
+    userId: "user-2",
+    challengeId: "challenge-tailwind-parser-tests",
+    status: "completed",
+    completionMethod: "manual",
+    pointsAwarded: getAwardedPointsForChallenge("challenge-tailwind-parser-tests"),
+    savedAt: new Date(Date.now() - 8 * 86_400_000).toISOString(),
+    startedAt: new Date(Date.now() - 5 * 86_400_000).toISOString(),
+    completedAt: new Date(Date.now() - 2 * 86_400_000).toISOString(),
+  },
+  {
+    id: "engagement-5",
+    userId: "user-2",
+    challengeId: "challenge-eslint-rule-meta",
+    status: "completed",
+    completionMethod: "manual",
+    pointsAwarded: getAwardedPointsForChallenge("challenge-eslint-rule-meta"),
+    savedAt: new Date(Date.now() - 12 * 86_400_000).toISOString(),
+    startedAt: new Date(Date.now() - 8 * 86_400_000).toISOString(),
+    completedAt: new Date(Date.now() - 6 * 86_400_000).toISOString(),
+  },
+  {
+    id: "engagement-6",
+    userId: "user-2",
+    challengeId: "challenge-gitea-template-preview",
+    status: "started",
+    pointsAwarded: 0,
+    savedAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
+    startedAt: new Date(Date.now() - 1 * 86_400_000).toISOString(),
+  },
+  {
+    id: "engagement-7",
+    userId: "user-3",
+    challengeId: "challenge-django-admin-empty-state",
+    status: "completed",
+    completionMethod: "manual",
+    pointsAwarded: getAwardedPointsForChallenge("challenge-django-admin-empty-state"),
+    savedAt: new Date(Date.now() - 14 * 86_400_000).toISOString(),
+    startedAt: new Date(Date.now() - 11 * 86_400_000).toISOString(),
+    completedAt: new Date(Date.now() - 9 * 86_400_000).toISOString(),
+  },
+  {
+    id: "engagement-8",
+    userId: "user-3",
+    challengeId: "challenge-rust-analyzer-diagnostic-wording",
+    status: "completed",
+    completionMethod: "manual",
+    pointsAwarded: getAwardedPointsForChallenge(
+      "challenge-rust-analyzer-diagnostic-wording",
+    ),
+    savedAt: new Date(Date.now() - 6 * 86_400_000).toISOString(),
+    startedAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
+    completedAt: new Date(Date.now() - 1 * 86_400_000).toISOString(),
+  },
+  {
+    id: "engagement-9",
+    userId: "user-3",
+    challengeId: "challenge-prisma-seed-errors",
+    status: "completed",
+    completionMethod: "manual",
+    pointsAwarded: getAwardedPointsForChallenge("challenge-prisma-seed-errors"),
+    savedAt: new Date(Date.now() - 18 * 86_400_000).toISOString(),
+    startedAt: new Date(Date.now() - 15 * 86_400_000).toISOString(),
+    completedAt: new Date(Date.now() - 12 * 86_400_000).toISOString(),
+  },
+  {
+    id: "engagement-10",
+    userId: "user-3",
+    challengeId: "challenge-astro-onboarding-copy",
+    status: "saved",
+    pointsAwarded: 0,
+    savedAt: new Date(Date.now() - 2 * 86_400_000).toISOString(),
+  },
+  {
+    id: "engagement-11",
+    userId: "user-4",
+    challengeId: "challenge-next-loading-boundary",
+    status: "completed",
+    completionMethod: "manual",
+    pointsAwarded: getAwardedPointsForChallenge("challenge-next-loading-boundary"),
+    savedAt: new Date(Date.now() - 5 * 86_400_000).toISOString(),
+    startedAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
+    completedAt: new Date(Date.now() - 1 * 86_400_000).toISOString(),
+  },
+  {
+    id: "engagement-12",
+    userId: "user-4",
+    challengeId: "challenge-gitea-template-preview",
+    status: "completed",
+    completionMethod: "manual",
+    pointsAwarded: getAwardedPointsForChallenge("challenge-gitea-template-preview"),
+    savedAt: new Date(Date.now() - 9 * 86_400_000).toISOString(),
+    startedAt: new Date(Date.now() - 6 * 86_400_000).toISOString(),
+    completedAt: new Date(Date.now() - 4 * 86_400_000).toISOString(),
+  },
+  {
+    id: "engagement-13",
+    userId: "user-4",
+    challengeId: "challenge-tailwind-parser-tests",
+    status: "saved",
+    pointsAwarded: 0,
+    savedAt: new Date(Date.now() - 1 * 86_400_000).toISOString(),
   },
 ];
+
+export const mockScores: ScoreRecord[] = mockUsers.map((user) => {
+  const completedEngagements = mockChallengeEngagements.filter(
+    (engagement) =>
+      engagement.userId === user.id && engagement.status === "completed",
+  );
+  const totalPoints = completedEngagements.reduce(
+    (sum, engagement) => sum + engagement.pointsAwarded,
+    0,
+  );
+
+  return {
+    id: `score-${user.id}`,
+    userId: user.id,
+    totalPoints,
+    currentStreak: SCORE_DEFAULTS.currentStreak,
+    completedChallenges: completedEngagements.length,
+    rankLabel: getScoreRankLabel(totalPoints),
+  };
+});

@@ -24,17 +24,29 @@ enum SubmissionStatus {
   REJECTED
 }
 
+enum ChallengeEngagementStatus {
+  SAVED
+  STARTED
+  COMPLETED
+}
+
+enum ChallengeCompletionMethod {
+  MANUAL
+  AUTOMATED
+}
+
 model User {
-  id             String       @id @default(cuid())
-  name           String
-  email          String       @unique
-  githubUsername String       @unique
-  bio            String?
-  avatarInitials String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  submissions    Submission[]
-  score          Score?
+  id                  String               @id @default(cuid())
+  name                String
+  email               String               @unique
+  githubUsername      String               @unique
+  bio                 String?
+  avatarInitials      String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  submissions         Submission[]
+  score               Score?
+  challengeEngagements ChallengeEngagement[]
 }
 
 model Repository {
@@ -73,6 +85,7 @@ model Challenge {
   repositoryId       String
   repository         Repository      @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
   submissions        Submission[]
+  engagements        ChallengeEngagement[]
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
 }
@@ -100,4 +113,27 @@ model Score {
   userId              String   @unique
   user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   updatedAt           DateTime @updatedAt
+
+  @@index([totalPoints, completedChallenges])
+}
+
+model ChallengeEngagement {
+  id               String                   @id @default(cuid())
+  status           ChallengeEngagementStatus @default(SAVED)
+  completionMethod ChallengeCompletionMethod?
+  pointsAwarded    Int                      @default(0)
+  savedAt          DateTime                 @default(now())
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  challengeId      String
+  challenge        Challenge                @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, challengeId])
+  @@index([userId, status])
+  @@index([challengeId])
+  @@index([status, completedAt])
 }

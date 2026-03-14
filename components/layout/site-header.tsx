@@ -4,6 +4,7 @@ import { PageContainer } from "@/components/layout/page-container";
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/challenges", label: "Challenges" },
+  { href: "/leaderboard", label: "Leaderboard" },
   { href: "/dashboard", label: "Dashboard" },
 ];
 

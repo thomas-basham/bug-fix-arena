@@ -1,6 +1,7 @@
 import {
   getChallengeDifficultyMetadata,
   getChallengeLanguageMetadata,
+  getChallengePointBreakdown,
   getChallengeSourceMetadata,
   getChallengeStatusMetadata,
   getSubmissionStatusMetadata,
@@ -20,6 +21,11 @@ export type ChallengeViewModel = {
   estimatedMinutesLabel: string;
   issueLabel: string;
   pointsLabel: string;
+  rewardBreakdownLabel: string;
+  rewardPointsLabel: string;
+  completionPointsLabel: string;
+  scoreTierLabel: string;
+  totalPointsLabel: string;
 };
 
 export type SubmissionViewModel = {
@@ -38,6 +44,7 @@ export function buildChallengeViewModel(
   );
   const sourceMetadata = getChallengeSourceMetadata(challenge.source);
   const statusMetadata = getChallengeStatusMetadata(challenge.status);
+  const points = getChallengePointBreakdown(challenge.difficulty, challenge.points);
 
   return {
     difficultyLabel: difficultyMetadata.label,
@@ -48,7 +55,12 @@ export function buildChallengeViewModel(
     statusLabel: statusMetadata.label,
     estimatedMinutesLabel: `${challenge.estimatedMinutes} min`,
     issueLabel: `#${challenge.issueNumber}`,
-    pointsLabel: `${challenge.points} pts`,
+    pointsLabel: `${points.totalPoints} pts`,
+    rewardBreakdownLabel: `${points.rewardPoints} reward + ${points.completionPoints} completion`,
+    rewardPointsLabel: `${points.rewardPoints} pts`,
+    completionPointsLabel: `${points.completionPoints} pts`,
+    scoreTierLabel: points.scoreTierLabel,
+    totalPointsLabel: `${points.totalPoints} pts`,
   };
 }
 

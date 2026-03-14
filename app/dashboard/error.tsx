@@ -17,7 +17,7 @@ export default function DashboardError({
       reset={reset}
       eyebrow="Dashboard Error"
       title="The contributor dashboard could not be loaded."
-      description="The dashboard shell hit an unexpected problem while loading mock progress or recommendations. Retry the request or return to the challenge catalog."
+      description="The dashboard hit an unexpected problem while loading engagement history or recommendations. Retry the request or return to the challenge catalog."
       secondaryHref="/challenges"
       secondaryLabel="Browse Challenges"
     />

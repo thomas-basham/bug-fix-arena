@@ -1,4 +1,6 @@
 import type {
+  ChallengeCompletionMethod as PrismaChallengeCompletionMethod,
+  ChallengeEngagementStatus as PrismaChallengeEngagementStatus,
   ChallengeSource as PrismaChallengeSource,
   ChallengeStatus as PrismaChallengeStatus,
   SubmissionStatus as PrismaSubmissionStatus,
@@ -14,6 +16,10 @@ export type ChallengeCatalogSort = ChallengeCatalogSortValue;
 export type ChallengeSource = LowercaseEnum<PrismaChallengeSource>;
 export type ChallengeStatus = LowercaseEnum<PrismaChallengeStatus>;
 export type SubmissionStatus = LowercaseEnum<PrismaSubmissionStatus>;
+export type ChallengeEngagementStatus =
+  LowercaseEnum<PrismaChallengeEngagementStatus>;
+export type ChallengeCompletionMethod =
+  LowercaseEnum<PrismaChallengeCompletionMethod>;
 export type ChallengeCatalogNoticeTone = "muted" | "warning";
 
 export type RepositoryRecord = {
@@ -69,6 +75,13 @@ export type UserRecord = {
   avatarInitials: string | null;
 };
 
+export type PublicUserRecord = {
+  id: string;
+  name: string;
+  githubUsername: string;
+  avatarInitials: string | null;
+};
+
 export type SubmissionRecord = {
   id: string;
   title: string;
@@ -82,6 +95,23 @@ export type SubmissionRecord = {
   checklist: string[];
 };
 
+export type ChallengeEngagementRecord = {
+  id: string;
+  userId: string;
+  challengeId: string;
+  status: ChallengeEngagementStatus;
+  completionMethod?: ChallengeCompletionMethod;
+  pointsAwarded: number;
+  savedAt: string;
+  startedAt?: string;
+  completedAt?: string;
+};
+
+export type DashboardChallengeRecord = {
+  engagement: ChallengeEngagementRecord;
+  challenge: ChallengeRecord;
+};
+
 export type ScoreRecord = {
   id: string;
   userId: string;
@@ -91,10 +121,33 @@ export type ScoreRecord = {
   rankLabel: string;
 };
 
-export type DashboardSnapshot = {
+export type LeaderboardEntryRecord = {
+  rank: number;
+  user: PublicUserRecord;
+  score: ScoreRecord;
+  lastScoreUpdateAt: string;
+};
+
+export type LeaderboardActivityRecord = {
+  id: string;
+  challengeSlug: string;
+  challengeTitle: string;
+  completedAt: string;
+  pointsAwarded: number;
+  user: PublicUserRecord;
+};
+
+export type LeaderboardSnapshot = {
+  entries: LeaderboardEntryRecord[];
+  recentActivity: LeaderboardActivityRecord[];
+};
+
+export type UserDashboardSnapshot = {
   user: UserRecord;
   score: ScoreRecord;
-  submissions: SubmissionRecord[];
+  savedChallenges: DashboardChallengeRecord[];
+  startedChallenges: DashboardChallengeRecord[];
+  completedChallenges: DashboardChallengeRecord[];
 };
 
 export type ChallengeCatalogFilters = {
