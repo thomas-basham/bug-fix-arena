@@ -13,7 +13,11 @@ export default function ChallengesLoading() {
         </div>
         <div className="surface-card mt-6 animate-pulse p-6 md:p-8">
           <div className="h-4 w-36 rounded-full bg-slate-200/70" />
-          <div className="mt-5 grid gap-4 md:grid-cols-4">
+          <div className="mt-5 grid gap-4 lg:grid-cols-[1.5fr_0.9fr]">
+            <div className="h-12 rounded-2xl bg-slate-200/70" />
+            <div className="h-12 rounded-2xl bg-slate-200/70" />
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <div className="h-12 rounded-2xl bg-slate-200/70" />
             <div className="h-12 rounded-2xl bg-slate-200/70" />
             <div className="h-12 rounded-2xl bg-slate-200/70" />

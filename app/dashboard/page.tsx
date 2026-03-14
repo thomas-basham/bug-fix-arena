@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChallengeCard } from "@/components/challenges/challenge-card";
+import { ChallengeGrid } from "@/components/challenges/challenge-grid";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageContainer } from "@/components/layout/page-container";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusBanner } from "@/components/ui/status-banner";
+import { buildSubmissionViewModel } from "@/lib/challenges/view-models";
 import {
   getDashboardSnapshot,
   getRecommendedChallenges,
@@ -20,6 +21,14 @@ export const metadata = {
 export default async function DashboardPage() {
   const dashboard = getDashboardSnapshot();
   const recommended = await getRecommendedChallenges(2);
+  const avatarInitials =
+    dashboard.user.avatarInitials ??
+    dashboard.user.name
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
 
   return (
     <AppShell>
@@ -29,7 +38,7 @@ export default async function DashboardPage() {
             <p className="mono-label">Workspace</p>
             <div className="mt-5 flex items-start gap-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-950 font-mono text-sm font-semibold uppercase tracking-[0.2em] text-white">
-                {dashboard.user.avatarInitials}
+                {avatarInitials}
               </div>
               <div>
                 <h1 className="text-3xl font-semibold text-slate-950">
@@ -70,32 +79,37 @@ export default async function DashboardPage() {
             />
             {dashboard.submissions.length > 0 ? (
               <div className="mt-6 space-y-4">
-                {dashboard.submissions.map((submission) => (
-                  <div
-                    key={submission.id}
-                    className="rounded-2xl border border-line bg-white/70 p-5"
-                  >
-                    <div className="flex flex-wrap items-center gap-3">
-                      <h2 className="text-lg font-semibold text-slate-950">
-                        {submission.title}
-                      </h2>
-                      <Badge tone={submission.status === "accepted" ? "success" : "muted"}>
-                        {submission.status}
-                      </Badge>
-                      <span className="font-mono text-xs uppercase tracking-[0.22em] text-muted">
-                        updated {formatRelativeDate(submission.updatedAt)}
-                      </span>
+                {dashboard.submissions.map((submission) => {
+                  const submissionViewModel =
+                    buildSubmissionViewModel(submission);
+
+                  return (
+                    <div
+                      key={submission.id}
+                      className="rounded-2xl border border-line bg-white/70 p-5"
+                    >
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h2 className="text-lg font-semibold text-slate-950">
+                          {submission.title}
+                        </h2>
+                        <Badge tone={submissionViewModel.statusTone}>
+                          {submissionViewModel.statusLabel}
+                        </Badge>
+                        <span className="font-mono text-xs uppercase tracking-[0.22em] text-muted">
+                          updated {formatRelativeDate(submission.updatedAt)}
+                        </span>
+                      </div>
+                      <p className="mt-3 text-sm leading-7 text-slate-700">
+                        {submission.summary}
+                      </p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {submission.checklist.map((item) => (
+                          <Badge key={item}>{item}</Badge>
+                        ))}
+                      </div>
                     </div>
-                    <p className="mt-3 text-sm leading-7 text-slate-700">
-                      {submission.summary}
-                    </p>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {submission.checklist.map((item) => (
-                        <Badge key={item}>{item}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="mt-6">
@@ -152,21 +166,17 @@ export default async function DashboardPage() {
               title="Suggested follow-up issues for this contributor profile."
               description="These cards reuse the same challenge building blocks the public catalog uses, which keeps the MVP architecture aligned."
             />
-            {recommended.challenges.length > 0 ? (
-              <div className="mt-6 grid gap-5 xl:grid-cols-2">
-                {recommended.challenges.map((challenge) => (
-                  <ChallengeCard key={challenge.id} challenge={challenge} />
-                ))}
-              </div>
-            ) : (
-              <div className="mt-6">
-                <EmptyState
-                  eyebrow="No Recommendations"
-                  title="Fresh recommendations will appear here."
-                  description="The recommendation rail is using the same challenge catalog service as the browse page. If the catalog is empty, this panel stays intentionally explicit."
-                />
-              </div>
-            )}
+            <div className="mt-6">
+              <ChallengeGrid
+                challenges={recommended.challenges}
+                emptyState={{
+                  eyebrow: "No Recommendations",
+                  title: "Fresh recommendations will appear here.",
+                  description:
+                    "The recommendation rail is using the same challenge catalog service as the browse page. If the catalog is empty, this panel stays intentionally explicit.",
+                }}
+              />
+            </div>
           </div>
         </section>
       </PageContainer>

@@ -1,10 +1,14 @@
 import Link from "next/link";
-import { ChallengeCard } from "@/components/challenges/challenge-card";
+import { ChallengeGrid } from "@/components/challenges/challenge-grid";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageContainer } from "@/components/layout/page-container";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusBanner } from "@/components/ui/status-banner";
+import {
+  CHALLENGE_DISCOVERY_LABELS,
+  getChallengeSourceMetadata,
+} from "@/lib/config/challenges";
 import { getFeaturedChallenges, getPlatformOverview } from "@/lib/data/catalog";
 
 export default async function Home() {
@@ -12,6 +16,7 @@ export default async function Home() {
     getFeaturedChallenges(4),
     Promise.resolve(getPlatformOverview()),
   ]);
+  const sourceMetadata = getChallengeSourceMetadata(source);
 
   return (
     <AppShell>
@@ -47,9 +52,12 @@ export default async function Home() {
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
               <StatCard
                 label="Challenge feed"
-                value={source === "github" ? "Live GitHub" : "Mock fallback"}
+                value={sourceMetadata.label}
               />
-              <StatCard label="Primary labels" value="good first issue" />
+              <StatCard
+                label="Primary labels"
+                value={CHALLENGE_DISCOVERY_LABELS.join(" + ")}
+              />
               <StatCard label="Core flow" value="Inspect -> plan -> submit" />
             </div>
           </div>
@@ -66,7 +74,7 @@ export default async function Home() {
             <pre className="mt-6 overflow-x-auto rounded-2xl bg-slate-950 p-5 font-mono text-sm leading-7 text-slate-100">
               <code>{`challenge = {
   source: "${source}",
-  labels: ["good first issue", "help wanted"],
+  labels: ["${CHALLENGE_DISCOVERY_LABELS[0]}", "${CHALLENGE_DISCOVERY_LABELS[1]}"],
   workflow: [
     "review issue context",
     "trace likely fix path",
@@ -133,10 +141,25 @@ export default async function Home() {
               </Link>
             }
           />
-          <div className="mt-8 grid gap-5 xl:grid-cols-2 2xl:grid-cols-4">
-            {challenges.map((challenge) => (
-              <ChallengeCard key={challenge.id} challenge={challenge} />
-            ))}
+          <div className="mt-8">
+            <ChallengeGrid
+              challenges={challenges}
+              className="xl:grid-cols-2 2xl:grid-cols-4"
+              emptyState={{
+                eyebrow: "No Featured Challenges",
+                title: "The featured issue rail is empty right now.",
+                description:
+                  "Live GitHub issues and the seeded fallback catalog are both unavailable for the homepage spotlight. Open the full catalog to retry the feed.",
+                action: (
+                  <Link
+                    href="/challenges"
+                    className="inline-flex items-center rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+                  >
+                    Open Catalog
+                  </Link>
+                ),
+              }}
+            />
           </div>
         </section>
 
@@ -147,8 +170,10 @@ export default async function Home() {
               Browse issues by contributor-friendly labels.
             </h2>
             <p className="mt-3 text-sm leading-7 text-slate-700">
-              Surface issues tagged with signals like `good first issue` and
-              `help wanted`, then wrap them in a consistent arena format.
+              Surface issues tagged with signals like{" "}
+              <code>{CHALLENGE_DISCOVERY_LABELS[0]}</code> and{" "}
+              <code>{CHALLENGE_DISCOVERY_LABELS[1]}</code>, then wrap them in a
+              consistent arena format.
             </p>
           </div>
           <div className="surface-card p-6">

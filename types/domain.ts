@@ -1,7 +1,19 @@
-export type ChallengeSource = "github" | "mock";
-export type ChallengeDifficulty = "beginner" | "intermediate";
-export type ChallengeStatus = "open" | "review" | "archived";
-export type SubmissionStatus = "draft" | "submitted" | "accepted" | "rejected";
+import type {
+  ChallengeSource as PrismaChallengeSource,
+  ChallengeStatus as PrismaChallengeStatus,
+  SubmissionStatus as PrismaSubmissionStatus,
+} from "@prisma/client";
+import type {
+  ChallengeCatalogSort as ChallengeCatalogSortValue,
+  ChallengeDifficulty,
+} from "@/lib/config/challenges";
+
+type LowercaseEnum<T extends string> = Lowercase<T>;
+
+export type ChallengeCatalogSort = ChallengeCatalogSortValue;
+export type ChallengeSource = LowercaseEnum<PrismaChallengeSource>;
+export type ChallengeStatus = LowercaseEnum<PrismaChallengeStatus>;
+export type SubmissionStatus = LowercaseEnum<PrismaSubmissionStatus>;
 export type ChallengeCatalogNoticeTone = "muted" | "warning";
 
 export type RepositoryRecord = {
@@ -29,6 +41,8 @@ export type ChallengeRecord = {
   title: string;
   summary: string;
   body: string;
+  openedAt: string;
+  updatedAt: string;
   difficulty: ChallengeDifficulty;
   status: ChallengeStatus;
   source: ChallengeSource;
@@ -52,7 +66,7 @@ export type UserRecord = {
   email: string;
   githubUsername: string;
   bio: string;
-  avatarInitials: string;
+  avatarInitials: string | null;
 };
 
 export type SubmissionRecord = {
@@ -84,15 +98,30 @@ export type DashboardSnapshot = {
 };
 
 export type ChallengeCatalogFilters = {
+  query?: string;
   language?: string;
   difficulty?: ChallengeDifficulty;
   label?: string;
+  repository?: string;
+  status?: ChallengeStatus;
 };
 
 export type ChallengeFilterOptions = {
   languages: string[];
   difficulties: ChallengeDifficulty[];
   labels: string[];
+  repositories: string[];
+  statuses: ChallengeStatus[];
+};
+
+export type ChallengeCatalogPagination = {
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  startIndex: number;
+  endIndex: number;
 };
 
 export type ChallengeCatalogNotice = {
@@ -103,11 +132,13 @@ export type ChallengeCatalogNotice = {
 
 export type ChallengeCatalogResult = {
   source: ChallengeSource;
-  labels: string[];
+  discoveryLabels: string[];
   challenges: ChallengeRecord[];
   totalChallenges: number;
   filteredChallenges: number;
   filters: ChallengeCatalogFilters;
+  sort: ChallengeCatalogSort;
   filterOptions: ChallengeFilterOptions;
+  pagination: ChallengeCatalogPagination;
   notice?: ChallengeCatalogNotice;
 };

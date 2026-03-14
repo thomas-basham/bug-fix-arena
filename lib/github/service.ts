@@ -3,19 +3,24 @@ import {
   fetchGitHubRepository,
   searchGitHubIssues,
 } from "@/lib/github/client";
-import { DEFAULT_GITHUB_LABELS, GITHUB_DEFAULT_RESULTS_PER_LABEL } from "@/lib/github/constants";
+import {
+  DEFAULT_GITHUB_LABELS,
+  GITHUB_DEFAULT_RESULTS_PER_LABEL,
+} from "@/lib/github/constants";
 import {
   normalizeGitHubIssueToChallenge,
   normalizeGitHubRepository,
 } from "@/lib/github/normalize";
 import type { ChallengeRecord, RepositoryRecord } from "@/types/domain";
 import type {
+  GitHubApiErrorType,
   GitHubChallengeFetchResult,
+  GitHubChallengeFetchStatus,
   GitHubIssueSearchItem,
 } from "@/types/github";
 
 type FetchGitHubChallengesOptions = {
-  labels?: string[];
+  labels?: readonly string[];
   limit: number;
 };
 
@@ -23,7 +28,7 @@ function getRepositoryFullNameFromIssue(issue: GitHubIssueSearchItem) {
   return issue.repository_url.replace("https://api.github.com/repos/", "");
 }
 
-function toChallengeStatus(type: "unconfigured" | "rate_limited" | "network" | "response") {
+function toChallengeStatus(type: GitHubApiErrorType): GitHubChallengeFetchStatus {
   switch (type) {
     case "unconfigured":
       return "unconfigured";
@@ -34,7 +39,7 @@ function toChallengeStatus(type: "unconfigured" | "rate_limited" | "network" | "
   }
 }
 
-async function fetchIssuesByLabels(labels: string[], perLabel: number) {
+async function fetchIssuesByLabels(labels: readonly string[], perLabel: number) {
   const issues = new Map<string, GitHubIssueSearchItem>();
   const messages: string[] = [];
   let status: GitHubChallengeFetchResult["status"] = "ok";

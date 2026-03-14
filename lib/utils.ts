@@ -47,3 +47,38 @@ export function getSearchParamValue(
 
   return value;
 }
+
+export function parsePositiveInteger(
+  value: string | undefined,
+  fallback: number,
+) {
+  if (!value) {
+    return fallback;
+  }
+
+  const parsedValue = Number.parseInt(value, 10);
+
+  if (!Number.isFinite(parsedValue) || parsedValue < 1) {
+    return fallback;
+  }
+
+  return parsedValue;
+}
+
+export function buildPathWithQuery(
+  pathname: string,
+  params: Record<string, string | number | undefined>,
+) {
+  const searchParams = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === "") {
+      continue;
+    }
+
+    searchParams.set(key, String(value));
+  }
+
+  const queryString = searchParams.toString();
+  return queryString ? `${pathname}?${queryString}` : pathname;
+}

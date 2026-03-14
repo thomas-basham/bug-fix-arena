@@ -5,11 +5,17 @@ import { ChallengeSidebar } from "@/components/challenges/challenge-sidebar";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageContainer } from "@/components/layout/page-container";
 import { Badge } from "@/components/ui/badge";
+import {
+  buildChallengeCatalogHref,
+  parseChallengeCatalogUrlState,
+} from "@/lib/challenges/catalog-state";
+import { buildChallengeViewModel } from "@/lib/challenges/view-models";
 import { getChallengeBySlug } from "@/lib/data/catalog";
 import { formatRelativeDate } from "@/lib/utils";
 
 type ChallengeDetailPageProps = {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export async function generateMetadata({
@@ -32,6 +38,7 @@ export async function generateMetadata({
 
 export default async function ChallengeDetailPage({
   params,
+  searchParams,
 }: ChallengeDetailPageProps) {
   const { slug } = await params;
   const challenge = await getChallengeBySlug(slug);
@@ -40,19 +47,22 @@ export default async function ChallengeDetailPage({
     notFound();
   }
 
+  const viewModel = buildChallengeViewModel(challenge);
+  const backHref = buildChallengeCatalogHref(
+    parseChallengeCatalogUrlState(await searchParams),
+  );
+
   return (
     <AppShell>
       <PageContainer className="py-10 md:py-14">
         <div className="flex flex-wrap items-center gap-3">
           <Link
-            href="/challenges"
+            href={backHref}
             className="inline-flex items-center rounded-full border border-line bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-white"
           >
             Back to Challenges
           </Link>
-          <Badge tone={challenge.source === "github" ? "success" : "warning"}>
-            {challenge.source === "github" ? "Live GitHub issue" : "Mock challenge"}
-          </Badge>
+          <Badge tone={viewModel.sourceTone}>{viewModel.sourceLabel}</Badge>
           <Badge>{challenge.repository.fullName}</Badge>
         </div>
 
@@ -60,7 +70,7 @@ export default async function ChallengeDetailPage({
           <article className="space-y-6">
             <div className="surface-card-strong p-8 md:p-10">
               <p className="mono-label">
-                Issue #{challenge.issueNumber} · {challenge.difficulty}
+                Issue {viewModel.issueLabel} · {viewModel.difficultyLabel}
               </p>
               <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950">
                 {challenge.title}

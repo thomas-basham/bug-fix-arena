@@ -35,9 +35,14 @@ The project keeps the architecture simple and intentionally production-shaped:
 
 - `app/` contains route-level pages, loading states, and error boundaries
 - `components/` holds reusable layout, UI, and challenge-specific modules
+- `lib/config/` centralizes challenge labels, difficulty rules, language labels,
+  and score defaults
+- `lib/challenges/` holds normalization helpers and UI-facing view models for
+  challenge data
 - `lib/data/` contains mock-backed catalog logic and filtering
+- `lib/db/` contains Prisma-to-domain mapping helpers for enum-safe writes
 - `lib/github/` contains the GitHub API integration layer
-- `types/` defines the shared domain and GitHub response types
+- `types/` defines the shared domain, database, and GitHub response types
 - `prisma/` contains the schema and seed script
 
 Two decisions drive the MVP:

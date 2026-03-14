@@ -114,7 +114,25 @@ const recentActivity = (
     ).toISOString(),
   }));
 
-const challengeSeeds: Array<Omit<ChallengeRecord, "repository" | "source">> = [
+function getChallengeOpenedAt(activity: ChallengeActivity[]) {
+  return (
+    [...activity]
+      .sort((left, right) => left.date.localeCompare(right.date))[0]?.date ??
+    new Date().toISOString()
+  );
+}
+
+function getChallengeUpdatedAt(activity: ChallengeActivity[]) {
+  return (
+    [...activity]
+      .sort((left, right) => right.date.localeCompare(left.date))[0]?.date ??
+    new Date().toISOString()
+  );
+}
+
+const challengeSeeds: Array<
+  Omit<ChallengeRecord, "repository" | "source" | "openedAt" | "updatedAt">
+> = [
   {
     id: "challenge-next-loading-boundary",
     slug: "nextjs-loading-boundary",
@@ -415,6 +433,8 @@ const challengeSeeds: Array<Omit<ChallengeRecord, "repository" | "source">> = [
 
 export const mockChallenges: ChallengeRecord[] = challengeSeeds.map((seed) => ({
   ...seed,
+  openedAt: getChallengeOpenedAt(seed.recentActivity),
+  updatedAt: getChallengeUpdatedAt(seed.recentActivity),
   repository: repositoryById.get(seed.repositoryId)!,
   source: "mock",
 }));

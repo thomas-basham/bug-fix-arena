@@ -2,6 +2,11 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 import { config as loadEnv } from "dotenv";
 import {
+  toPrismaChallengeSource,
+  toPrismaChallengeStatus,
+  toPrismaSubmissionStatus,
+} from "../lib/db/mappers";
+import {
   mockChallenges,
   mockRepositories,
   mockScores,
@@ -66,8 +71,8 @@ async function main() {
         summary: challenge.summary,
         body: challenge.body,
         difficulty: challenge.difficulty,
-        status: challenge.status.toUpperCase() as "OPEN" | "REVIEW" | "ARCHIVED",
-        source: "MOCK",
+        status: toPrismaChallengeStatus(challenge.status),
+        source: toPrismaChallengeSource("mock"),
         labels: challenge.labels,
         techStack: challenge.techStack,
         issueNumber: challenge.issueNumber,
@@ -89,11 +94,7 @@ async function main() {
         title: submission.title,
         summary: submission.summary,
         checklist: submission.checklist,
-        status: submission.status.toUpperCase() as
-          | "DRAFT"
-          | "SUBMITTED"
-          | "ACCEPTED"
-          | "REJECTED",
+        status: toPrismaSubmissionStatus(submission.status),
         challengeId: submission.challengeId,
         userId: submission.userId,
       },

@@ -6,8 +6,8 @@ export function SiteFooter() {
     <footer className="border-t border-line/80 py-8">
       <PageContainer className="flex flex-col gap-4 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
         <p>
-          Open Source Bug Fix Arena MVP. Mock data keeps the product usable
-          until GitHub and Prisma are fully wired.
+          Open Source Bug Fix Arena MVP. The live GitHub feed falls back to
+          seeded challenge data when the API is unavailable.
         </p>
         <div className="flex flex-wrap items-center gap-4">
           <Link href="/challenges">Challenges</Link>

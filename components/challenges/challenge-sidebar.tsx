@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { buildChallengeViewModel } from "@/lib/challenges/view-models";
 import type { ChallengeRecord } from "@/types/domain";
 
 type ChallengeSidebarProps = {
@@ -6,6 +7,8 @@ type ChallengeSidebarProps = {
 };
 
 export function ChallengeSidebar({ challenge }: ChallengeSidebarProps) {
+  const viewModel = buildChallengeViewModel(challenge);
+
   return (
     <aside className="space-y-6">
       <div className="surface-card-strong p-8">
@@ -14,12 +17,14 @@ export function ChallengeSidebar({ challenge }: ChallengeSidebarProps) {
           <div className="rounded-2xl border border-line bg-white/70 p-4">
             <p className="mono-label">Estimated time</p>
             <p className="mt-2 font-medium text-slate-900">
-              {challenge.estimatedMinutes} minutes
+              {viewModel.estimatedMinutesLabel}
             </p>
           </div>
           <div className="rounded-2xl border border-line bg-white/70 p-4">
             <p className="mono-label">Points</p>
-            <p className="mt-2 font-medium text-slate-900">{challenge.points}</p>
+            <p className="mt-2 font-medium text-slate-900">
+              {viewModel.pointsLabel}
+            </p>
           </div>
           <div className="rounded-2xl border border-line bg-white/70 p-4">
             <p className="mono-label">Repository</p>
@@ -29,9 +34,7 @@ export function ChallengeSidebar({ challenge }: ChallengeSidebarProps) {
           </div>
           <div className="rounded-2xl border border-line bg-white/70 p-4">
             <p className="mono-label">Status</p>
-            <p className="mt-2 font-medium capitalize text-slate-900">
-              {challenge.status}
-            </p>
+            <p className="mt-2 font-medium text-slate-900">{viewModel.statusLabel}</p>
           </div>
         </div>
       </div>

@@ -1,4 +1,14 @@
 import {
+  CHALLENGE_CATALOG_DEFAULT_SORT,
+  CHALLENGE_CATALOG_PAGE_SIZE,
+  CHALLENGE_DIFFICULTIES,
+  CHALLENGE_STATUSES,
+  SCORE_DEFAULTS,
+  isChallengeCatalogSort,
+  isChallengeDifficulty,
+  isChallengeStatus,
+} from "@/lib/config/challenges";
+import {
   mockChallenges,
   mockRepositories,
   mockScores,
@@ -11,25 +21,41 @@ import type {
   ChallengeCatalogFilters,
   ChallengeCatalogNotice,
   ChallengeCatalogResult,
-  ChallengeDifficulty,
+  ChallengeCatalogSort,
   ChallengeFilterOptions,
   ChallengeRecord,
+  ChallengeStatus,
   DashboardSnapshot,
+  ScoreRecord,
+  UserRecord,
 } from "@/types/domain";
 
 type GetChallengeCatalogOptions = {
-  limit?: number;
   filters?: ChallengeCatalogFilters;
+  limit?: number;
+  page?: number;
+  pageSize?: number;
+  sort?: ChallengeCatalogSort;
 };
 
-const difficultyOrder: ChallengeDifficulty[] = ["beginner", "intermediate"];
+function normalizeTextValue(value?: string) {
+  const normalizedValue = value?.trim();
 
-function normalizeFilterValue(value?: string) {
-  if (!value || value === "all") {
+  if (!normalizedValue) {
     return undefined;
   }
 
-  return value;
+  return normalizedValue;
+}
+
+function normalizeSelectValue(value?: string) {
+  const normalizedValue = normalizeTextValue(value);
+
+  if (!normalizedValue || normalizedValue === "all") {
+    return undefined;
+  }
+
+  return normalizedValue;
 }
 
 function buildFilterOptions(challenges: ChallengeRecord[]): ChallengeFilterOptions {
@@ -37,13 +63,53 @@ function buildFilterOptions(challenges: ChallengeRecord[]): ChallengeFilterOptio
     languages: Array.from(
       new Set(challenges.map((challenge) => challenge.repository.language)),
     ).sort((a, b) => a.localeCompare(b)),
-    difficulties: difficultyOrder.filter((difficulty) =>
+    difficulties: CHALLENGE_DIFFICULTIES.filter((difficulty) =>
       challenges.some((challenge) => challenge.difficulty === difficulty),
     ),
     labels: Array.from(
       new Set(challenges.flatMap((challenge) => challenge.labels)),
     ).sort((a, b) => a.localeCompare(b)),
+    repositories: Array.from(
+      new Set(challenges.map((challenge) => challenge.repository.fullName)),
+    ).sort((a, b) => a.localeCompare(b)),
+    statuses: CHALLENGE_STATUSES.filter((status) =>
+      challenges.some((challenge) => challenge.status === status),
+    ) as ChallengeStatus[],
   };
+}
+
+function buildChallengeSearchIndex(challenge: ChallengeRecord) {
+  return [
+    challenge.title,
+    challenge.summary,
+    challenge.body,
+    challenge.repository.name,
+    challenge.repository.fullName,
+    challenge.repository.owner,
+    challenge.repository.description,
+    ...challenge.labels,
+    ...challenge.techStack,
+  ]
+    .join(" ")
+    .toLowerCase();
+}
+
+function matchesSearchQuery(challenge: ChallengeRecord, query?: string) {
+  if (!query) {
+    return true;
+  }
+
+  const terms = query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (terms.length === 0) {
+    return true;
+  }
+
+  const searchIndex = buildChallengeSearchIndex(challenge);
+  return terms.every((term) => searchIndex.includes(term));
 }
 
 function applyFilters(
@@ -51,6 +117,10 @@ function applyFilters(
   filters: ChallengeCatalogFilters,
 ) {
   return challenges.filter((challenge) => {
+    if (!matchesSearchQuery(challenge, filters.query)) {
+      return false;
+    }
+
     if (
       filters.language &&
       challenge.repository.language !== filters.language
@@ -63,6 +133,17 @@ function applyFilters(
     }
 
     if (filters.label && !challenge.labels.includes(filters.label)) {
+      return false;
+    }
+
+    if (
+      filters.repository &&
+      challenge.repository.fullName !== filters.repository
+    ) {
+      return false;
+    }
+
+    if (filters.status && challenge.status !== filters.status) {
       return false;
     }
 
@@ -107,10 +188,60 @@ function buildNotice(
   };
 }
 
-function sortChallenges(challenges: ChallengeRecord[]) {
+const difficultyRank = Object.fromEntries(
+  CHALLENGE_DIFFICULTIES.map((difficulty, index) => [difficulty, index]),
+) as Record<(typeof CHALLENGE_DIFFICULTIES)[number], number>;
+
+function sortChallenges(
+  challenges: ChallengeRecord[],
+  sort: ChallengeCatalogSort,
+) {
   return [...challenges].sort((left, right) => {
-    if (right.points !== left.points) {
+    const leftOpenedAt = new Date(left.openedAt).getTime();
+    const rightOpenedAt = new Date(right.openedAt).getTime();
+
+    if (sort === "newest") {
+      if (rightOpenedAt !== leftOpenedAt) {
+        return rightOpenedAt - leftOpenedAt;
+      }
+    }
+
+    if (sort === "oldest") {
+      if (leftOpenedAt !== rightOpenedAt) {
+        return leftOpenedAt - rightOpenedAt;
+      }
+    }
+
+    if (sort === "easiest") {
+      if (difficultyRank[left.difficulty] !== difficultyRank[right.difficulty]) {
+        return difficultyRank[left.difficulty] - difficultyRank[right.difficulty];
+      }
+
+      if (left.estimatedMinutes !== right.estimatedMinutes) {
+        return left.estimatedMinutes - right.estimatedMinutes;
+      }
+
+      if (left.points !== right.points) {
+        return left.points - right.points;
+      }
+    }
+
+    if (sort === "highest-reward") {
+      if (right.points !== left.points) {
+        return right.points - left.points;
+      }
+
+      if (left.estimatedMinutes !== right.estimatedMinutes) {
+        return left.estimatedMinutes - right.estimatedMinutes;
+      }
+    }
+
+    if (sort !== "highest-reward" && right.points !== left.points) {
       return right.points - left.points;
+    }
+
+    if (right.updatedAt !== left.updatedAt) {
+      return right.updatedAt.localeCompare(left.updatedAt);
     }
 
     if (right.repository.stars !== left.repository.stars) {
@@ -121,55 +252,117 @@ function sortChallenges(challenges: ChallengeRecord[]) {
   });
 }
 
+function paginateChallenges(
+  challenges: ChallengeRecord[],
+  page: number,
+  pageSize: number,
+) {
+  const totalPages = Math.max(1, Math.ceil(challenges.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const start = (currentPage - 1) * pageSize;
+  const paginatedChallenges = challenges.slice(start, start + pageSize);
+
+  return {
+    challenges: paginatedChallenges,
+    pagination: {
+      currentPage,
+      pageSize,
+      totalPages,
+      hasNextPage: currentPage < totalPages,
+      hasPreviousPage: currentPage > 1,
+      startIndex: challenges.length === 0 ? 0 : start + 1,
+      endIndex:
+        challenges.length === 0 ? 0 : start + paginatedChallenges.length,
+    },
+  };
+}
+
 export async function getChallengeCatalog({
-  limit,
   filters = {},
+  limit,
+  page = 1,
+  pageSize = CHALLENGE_CATALOG_PAGE_SIZE,
+  sort = CHALLENGE_CATALOG_DEFAULT_SORT,
 }: GetChallengeCatalogOptions = {}): Promise<ChallengeCatalogResult> {
+  const fetchLimit = Math.max(limit ?? 0, mockChallenges.length, page * pageSize, 24);
   const githubResult = await fetchGitHubChallenges({
     labels: DEFAULT_GITHUB_LABELS,
-    limit: Math.max(limit ?? mockChallenges.length, mockChallenges.length),
+    limit: fetchLimit,
   });
 
   const baseChallenges =
     githubResult.challenges.length > 0 ? githubResult.challenges : mockChallenges;
+  const query = normalizeTextValue(filters.query);
+  const difficultyFilter = normalizeSelectValue(filters.difficulty);
+  const statusFilter = normalizeSelectValue(filters.status);
+  const normalizedSort = isChallengeCatalogSort(sort) ? sort : CHALLENGE_CATALOG_DEFAULT_SORT;
   const normalizedFilters: ChallengeCatalogFilters = {
-    language: normalizeFilterValue(filters.language),
-    difficulty: normalizeFilterValue(filters.difficulty) as
-      | ChallengeDifficulty
-      | undefined,
-    label: normalizeFilterValue(filters.label),
+    query,
+    language: normalizeSelectValue(filters.language),
+    difficulty: isChallengeDifficulty(difficultyFilter)
+      ? difficultyFilter
+      : undefined,
+    label: normalizeSelectValue(filters.label),
+    repository: normalizeSelectValue(filters.repository),
+    status: isChallengeStatus(statusFilter) ? statusFilter : undefined,
   };
-  const sortedChallenges = sortChallenges(baseChallenges);
-  const filteredChallenges = applyFilters(sortedChallenges, normalizedFilters);
-  const challenges =
-    typeof limit === "number"
-      ? filteredChallenges.slice(0, limit)
-      : filteredChallenges;
+  const filterOptions = buildFilterOptions(baseChallenges);
+  const filteredChallenges = applyFilters(baseChallenges, normalizedFilters);
+  const sortedChallenges = sortChallenges(filteredChallenges, normalizedSort);
+  const paginatedChallenges = paginateChallenges(sortedChallenges, page, pageSize);
+  const challenges = typeof limit === "number"
+    ? paginatedChallenges.challenges.slice(0, limit)
+    : paginatedChallenges.challenges;
 
   return {
     source: githubResult.challenges.length > 0 ? "github" : "mock",
-    labels: DEFAULT_GITHUB_LABELS,
+    discoveryLabels: DEFAULT_GITHUB_LABELS,
     challenges,
-    totalChallenges: sortedChallenges.length,
+    totalChallenges: baseChallenges.length,
     filteredChallenges: filteredChallenges.length,
     filters: normalizedFilters,
-    filterOptions: buildFilterOptions(sortedChallenges),
+    sort: normalizedSort,
+    filterOptions,
+    pagination: paginatedChallenges.pagination,
     notice: buildNotice(githubResult.status, githubResult.message),
   };
 }
 
+function getFallbackDashboardUser(): UserRecord {
+  return {
+    id: "demo-user",
+    name: "Demo Contributor",
+    email: "demo@bugfixarena.dev",
+    githubUsername: "demo-contributor",
+    bio: "Fallback contributor profile used when the seeded dashboard user is unavailable.",
+    avatarInitials: "DC",
+  };
+}
+
+function getFallbackScore(userId: string): ScoreRecord {
+  return {
+    id: `score-${userId}`,
+    userId,
+    ...SCORE_DEFAULTS,
+  };
+}
+
 export async function getFeaturedChallenges(limit = 3) {
-  return getChallengeCatalog({ limit });
+  return getChallengeCatalog({ limit, pageSize: limit, sort: "highest-reward" });
 }
 
 export async function getRecommendedChallenges(limit = 2) {
-  return getChallengeCatalog({ limit });
+  return getChallengeCatalog({ limit, pageSize: limit, sort: "highest-reward" });
 }
 
 export async function getChallengeBySlug(
   slug: string,
 ): Promise<ChallengeRecord | null> {
-  const liveCatalog = await getChallengeCatalog({ limit: 20 });
+  const lookupLimit = CHALLENGE_CATALOG_PAGE_SIZE * 8;
+  const liveCatalog = await getChallengeCatalog({
+    limit: lookupLimit,
+    pageSize: lookupLimit,
+  });
   const liveMatch = liveCatalog.challenges.find(
     (challenge) => challenge.slug === slug,
   );
@@ -182,10 +375,17 @@ export async function getChallengeBySlug(
 }
 
 export function getDashboardSnapshot(): DashboardSnapshot {
+  const user = mockUsers[0] ?? getFallbackDashboardUser();
+  const score =
+    mockScores.find((entry) => entry.userId === user.id) ??
+    getFallbackScore(user.id);
+
   return {
-    user: mockUsers[0],
-    score: mockScores[0],
-    submissions: mockSubmissions,
+    user,
+    score,
+    submissions: mockSubmissions.filter(
+      (submission) => submission.userId === user.id,
+    ),
   };
 }
 
