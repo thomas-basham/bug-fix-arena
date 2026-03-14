@@ -31,6 +31,8 @@ The current MVP includes:
 - Prisma schema for `User`, `Repository`, `Challenge`, `Submission`, and `Score`
 - Prisma schema support for `ChallengeEngagement` so progress state can evolve
   into automated scoring later
+- Internal admin sync page for manually importing and auditing GitHub challenge
+  ingestion runs
 - Seeded mock data reused by both the UI and database seed flow
 - GitHub service layer with graceful fallback notices and empty-state handling
 - Route-level loading states, global error handling, and not-found UX
@@ -48,6 +50,8 @@ The project keeps the architecture simple and intentionally production-shaped:
 - `lib/data/` contains mock-backed catalog logic and filtering
 - `lib/db/` contains Prisma-to-domain mapping helpers for enum-safe writes
 - `lib/github/` contains the GitHub API integration layer
+- `lib/sync/` contains the manual GitHub ingestion workflow and sync audit
+  queries
 - `types/` defines the shared domain, database, and GitHub response types
 - `prisma/` contains the schema and seed script
 
@@ -67,6 +71,7 @@ Planned next steps after this MVP:
 
 - Persist challenge discovery and submissions through database-backed queries
 - Add a real submission flow for saved drafts and structured fix plans
+- Move manual GitHub sync into a scheduled background job with retry support
 - Replace the demo session cookie with GitHub-backed authentication when the
   contribution workflow is ready for real identity
 - Add verified submission review, AI hints, test runner integration, and PR
@@ -87,6 +92,7 @@ npm install
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/bug_fix_arena
 DIRECT_URL=postgresql://postgres:postgres@localhost:5432/bug_fix_arena
 GITHUB_TOKEN=github_pat_replace_me
+ADMIN_GITHUB_USERNAMES=morganlee
 ```
 
 - `DATABASE_URL` is the pooled app connection used by the runtime
@@ -97,6 +103,9 @@ GITHUB_TOKEN=github_pat_replace_me
   repository fetching
 - `GITHUB_API_TIMEOUT_MS` controls how long the server waits on GitHub before
   falling back to the seeded mock catalog
+- `ADMIN_GITHUB_USERNAMES` is a comma-separated allowlist for the internal
+  `/admin/sync` page. In non-production environments, any signed-in user can
+  access that page if the variable is left blank.
 
 The auth scaffold does not currently require extra environment variables. The
 app uses a simple HTTP-only cookie to sign into the seeded demo contributor.
@@ -125,6 +134,9 @@ Open `http://localhost:3000`.
 To use the engagement features, click `Demo Sign In` in the header or sign in
 from the dashboard or any challenge detail page.
 
+To run the ingestion workflow manually, sign in and open
+`http://localhost:3000/admin/sync`.
+
 ## Useful Scripts
 
 - `npm run dev` starts the app locally
@@ -143,8 +155,12 @@ The GitHub integration is intentionally layered:
   into the internal `RepositoryRecord` and `ChallengeRecord` models
 - `lib/github/service.ts` orchestrates label-based issue search, repository
   hydration, and challenge feed assembly
-- `lib/data/catalog.ts` decides whether the UI should render live GitHub-backed
-  challenges or fall back to the seeded mock catalog
+- `lib/sync/service.ts` pages the qualifying GitHub issue feed, normalizes it,
+  upserts it into Postgres, and archives stale GitHub challenges when the sync
+  window is complete enough to do that safely
+- `lib/data/catalog.ts` prefers persisted synced GitHub challenges when they
+  exist, otherwise falls back to live GitHub and then to the seeded mock
+  catalog
 
 This keeps live GitHub usage reusable while preserving the mock fallback path
 for local development, rate limits, or temporary API failures.
