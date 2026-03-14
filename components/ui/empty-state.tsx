@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-type EmptyStateProps = {
+export type EmptyStateProps = {
   eyebrow: string;
   title: string;
   description: string;
