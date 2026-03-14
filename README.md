@@ -76,6 +76,10 @@ GITHUB_TOKEN=github_pat_replace_me
 - `DATABASE_URL` is the pooled app connection used by the runtime and seed flow
 - `DIRECT_URL` is the direct database connection used for Prisma CLI commands,
   which is especially important for providers like Supabase
+- `GITHUB_TOKEN` enables authenticated GitHub API access for live issue and
+  repository fetching
+- `GITHUB_API_TIMEOUT_MS` controls how long the server waits on GitHub before
+  falling back to the seeded mock catalog
 
 3. Generate the Prisma client:
 
@@ -105,3 +109,19 @@ Open `http://localhost:3000`.
 - `npm run build` creates a production build using Webpack
 - `npm run db:generate` generates the Prisma client
 - `npm run db:seed` loads the seeded MVP catalog into the database
+
+## GitHub Integration
+
+The GitHub integration is intentionally layered:
+
+- `lib/github/client.ts` handles authenticated GitHub API requests, timeouts,
+  and rate-limit-aware error classification
+- `lib/github/normalize.ts` converts raw GitHub repository and issue payloads
+  into the internal `RepositoryRecord` and `ChallengeRecord` models
+- `lib/github/service.ts` orchestrates label-based issue search, repository
+  hydration, and challenge feed assembly
+- `lib/data/catalog.ts` decides whether the UI should render live GitHub-backed
+  challenges or fall back to the seeded mock catalog
+
+This keeps live GitHub usage reusable while preserving the mock fallback path
+for local development, rate limits, or temporary API failures.
