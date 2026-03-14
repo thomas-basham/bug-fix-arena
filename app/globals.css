@@ -1,26 +1,90 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4efe5;
+  --foreground: #111827;
+  --muted: #5b6475;
+  --surface: rgba(255, 251, 245, 0.78);
+  --surface-strong: #fffaf2;
+  --line: rgba(15, 23, 42, 0.08);
+  --accent: #0f766e;
+  --accent-soft: #d8f5ef;
+  --signal: #c2410c;
+  --shadow: rgba(15, 23, 42, 0.06);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted: var(--muted);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-signal: var(--signal);
+  --color-shadow: var(--shadow);
+  --font-sans:
+    "Avenir Next", "Segoe UI", "Trebuchet MS", "Helvetica Neue", sans-serif;
+  --font-mono:
+    "SFMono-Regular", "IBM Plex Mono", "Menlo", "Consolas", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(15, 118, 110, 0.12), transparent 32%),
+    radial-gradient(circle at top right, rgba(194, 65, 12, 0.1), transparent 26%),
+    linear-gradient(180deg, #fbf8f0 0%, #f1ecdf 100%);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.18), transparent 72%);
+  pointer-events: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(15, 118, 110, 0.18);
+}
+
+@layer utilities {
+  .surface-card {
+    @apply rounded-[28px] border border-line/80 bg-surface shadow-[0_12px_30px_-18px_var(--shadow)] backdrop-blur;
+  }
+
+  .surface-card-strong {
+    @apply rounded-[28px] border border-line bg-surface-strong shadow-[0_18px_40px_-22px_var(--shadow)];
+  }
+
+  .mono-label {
+    @apply font-mono text-[0.75rem] uppercase tracking-[0.24em] text-muted;
+  }
 }
