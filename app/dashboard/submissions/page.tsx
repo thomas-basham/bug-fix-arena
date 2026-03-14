@@ -48,7 +48,8 @@ export default async function DashboardSubmissionsPage() {
   return (
     <AppShell>
       <PageContainer className="py-10 md:py-14">
-        <section className="surface-card-strong p-8 md:p-10">
+        <section className="surface-card-strong relative overflow-hidden p-8 md:p-10 lg:p-12">
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent" />
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="mono-label">Dashboard / My Submissions</p>

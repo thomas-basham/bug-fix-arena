@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChallengeGrid } from "@/components/challenges/challenge-grid";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageContainer } from "@/components/layout/page-container";
+import { Badge } from "@/components/ui/badge";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusBanner } from "@/components/ui/status-banner";
@@ -21,15 +22,20 @@ export default async function Home() {
   return (
     <AppShell>
       <PageContainer className="py-10 md:py-14">
-        <section className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="surface-card-strong relative overflow-hidden p-8 md:p-10">
+        <section className="grid gap-8 xl:grid-cols-[1.12fr_0.88fr]">
+          <div className="surface-card-strong relative overflow-hidden p-8 md:p-10 lg:p-12">
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent" />
             <p className="mono-label">MVP foundation for contributor workflows</p>
-            <div className="mt-6 max-w-2xl space-y-6">
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Badge tone="accent">{sourceMetadata.label}</Badge>
+              <Badge>Beginner-friendly issue discovery</Badge>
+              <Badge tone="muted">Server-rendered challenge briefings</Badge>
+            </div>
+            <div className="mt-6 max-w-3xl space-y-6">
               <h1 className="text-4xl font-semibold tracking-tight text-slate-950 md:text-6xl">
                 Turn real open source issues into focused bug-fix challenges.
               </h1>
-              <p className="max-w-xl text-lg leading-8 text-slate-700">
+              <p className="max-w-2xl text-lg leading-8 text-slate-700">
                 Open Source Bug Fix Arena helps developers discover
                 beginner-friendly GitHub issues, inspect the context, and draft
                 a practical fix workflow before opening a pull request.
@@ -62,7 +68,7 @@ export default async function Home() {
             </div>
           </div>
 
-          <aside className="surface-card p-6 md:p-8">
+          <aside className="surface-card p-6 md:p-8 lg:p-10">
             <div className="flex items-center gap-2 border-b border-line pb-4">
               <span className="h-3 w-3 rounded-full bg-rose-400" />
               <span className="h-3 w-3 rounded-full bg-amber-400" />
@@ -84,14 +90,14 @@ export default async function Home() {
 };`}</code>
             </pre>
             <div className="mt-6 grid gap-3">
-              <div className="rounded-2xl border border-line bg-white/70 p-4">
+              <div className="surface-panel p-4">
                 <p className="mono-label">MVP principle</p>
                 <p className="mt-2 text-sm leading-7 text-slate-700">
                   Keep the foundation server-rendered, typed, and mock-friendly
                   while the GitHub and database layers mature.
                 </p>
               </div>
-              <div className="rounded-2xl border border-line bg-white/70 p-4">
+              <div className="surface-panel p-4">
                 <p className="mono-label">Next milestone</p>
                 <p className="mt-2 text-sm leading-7 text-slate-700">
                   Add structured workflow submissions and validation hooks
@@ -164,7 +170,8 @@ export default async function Home() {
         </section>
 
         <section className="mt-16 grid gap-6 lg:grid-cols-3">
-          <div className="surface-card p-6">
+          <div className="surface-card relative overflow-hidden p-6">
+            <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent" />
             <p className="mono-label">1. Discover</p>
             <h2 className="mt-3 text-2xl font-semibold text-slate-950">
               Browse issues by contributor-friendly labels.
@@ -176,7 +183,8 @@ export default async function Home() {
               consistent arena format.
             </p>
           </div>
-          <div className="surface-card p-6">
+          <div className="surface-card relative overflow-hidden p-6">
+            <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent" />
             <p className="mono-label">2. Plan</p>
             <h2 className="mt-3 text-2xl font-semibold text-slate-950">
               Turn the issue into a practical fix workflow.
@@ -186,7 +194,8 @@ export default async function Home() {
               contributors can move with more confidence.
             </p>
           </div>
-          <div className="surface-card p-6">
+          <div className="surface-card relative overflow-hidden p-6">
+            <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent" />
             <p className="mono-label">3. Grow</p>
             <h2 className="mt-3 text-2xl font-semibold text-slate-950">
               Add scoring and review loops incrementally.

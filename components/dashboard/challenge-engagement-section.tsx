@@ -20,13 +20,13 @@ export function ChallengeEngagementSection({
   items,
 }: ChallengeEngagementSectionProps) {
   return (
-    <section>
+    <section className="space-y-6">
       <SectionHeading
         eyebrow={eyebrow}
         title={title}
         description={description}
       />
-      <div className="mt-6">
+      <div>
         <ChallengeGrid
           challenges={items.map((item) => item.challenge)}
           emptyState={{

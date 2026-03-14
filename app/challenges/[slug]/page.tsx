@@ -88,12 +88,12 @@ export default async function ChallengeDetailPage({
   return (
     <AppShell>
       <PageContainer className="py-10 md:py-14">
-        <header className="surface-card-strong relative overflow-hidden p-8 md:p-10">
+        <header className="surface-card-strong relative overflow-hidden p-8 md:p-10 lg:p-12">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent" />
           <div className="flex flex-wrap items-center gap-3">
             <Link
               href={backHref}
-              className="inline-flex items-center rounded-full border border-line bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-white"
+              className="button-secondary-sm"
             >
               Back to Challenges
             </Link>
@@ -246,7 +246,7 @@ export default async function ChallengeDetailPage({
                   {challenge.recentActivity.map((activity) => (
                     <div
                       key={activity.id}
-                      className="rounded-2xl border border-line bg-white/70 p-4"
+                      className="surface-panel p-4"
                     >
                       <div className="flex flex-wrap items-center gap-3">
                         <p className="font-medium text-slate-900">

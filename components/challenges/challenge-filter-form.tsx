@@ -53,10 +53,10 @@ export function ChallengeFilterForm({
 
   return (
     <section className="surface-card p-6 md:p-8">
-      <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-        <div>
+      <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+        <div className="max-w-3xl">
           <p className="mono-label">Search And Filter</p>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950 md:text-[2rem]">
             Search by issue, repository, or keyword and refine the feed.
           </h2>
           <p className="mt-3 text-sm leading-7 text-slate-700">
@@ -66,27 +66,42 @@ export function ChallengeFilterForm({
             the current source feed.
           </p>
         </div>
-        {hasActiveFilters(filters, sort) ? (
-          <Link
-            href="/challenges"
-            className="inline-flex items-center rounded-full border border-line bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-white"
-          >
-            Clear All Filters
-          </Link>
-        ) : null}
+        <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[26rem]">
+          <div className="surface-panel p-4">
+            <p className="mono-label">Showing</p>
+            <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+              {showingCount}
+            </p>
+            <p className="mt-1 text-sm text-slate-600">On this page</p>
+          </div>
+          <div className="surface-panel p-4">
+            <p className="mono-label">Matches</p>
+            <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+              {filteredChallenges}
+            </p>
+            <p className="mt-1 text-sm text-slate-600">After filters</p>
+          </div>
+          <div className="surface-panel p-4">
+            <p className="mono-label">Feed Size</p>
+            <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+              {totalChallenges}
+            </p>
+            <p className="mt-1 text-sm text-slate-600">Current source</p>
+          </div>
+        </div>
       </div>
 
-      <form className="mt-6 space-y-4">
+      <form className="mt-8 space-y-5">
         <input type="hidden" name="page" value="1" />
-        <div className="grid gap-4 lg:grid-cols-[1.5fr_0.9fr]">
-          <label className="space-y-2">
+        <div className="grid gap-4 lg:grid-cols-[1.55fr_0.85fr_auto]">
+          <label className="space-y-2 lg:col-span-1">
             <span className="mono-label">Search</span>
             <input
               type="search"
               name="query"
               defaultValue={filters.query ?? ""}
               placeholder="Search titles, repos, labels, or keywords"
-              className="w-full rounded-2xl border border-line bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-accent"
+              className="ui-field"
             />
           </label>
           <label className="space-y-2">
@@ -94,7 +109,7 @@ export function ChallengeFilterForm({
             <select
               name="sort"
               defaultValue={sort}
-              className="w-full rounded-2xl border border-line bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-accent"
+              className="ui-field"
             >
               {CHALLENGE_CATALOG_SORTS.map((sortOption) => (
                 <option key={sortOption} value={sortOption}>
@@ -103,93 +118,94 @@ export function ChallengeFilterForm({
               ))}
             </select>
           </label>
+          <div className="flex items-end gap-3">
+            <button type="submit" className="button-primary w-full lg:w-auto">
+              Apply Filters
+            </button>
+            {hasActiveFilters(filters, sort) ? (
+              <Link href="/challenges" className="button-secondary">
+                Clear All
+              </Link>
+            ) : null}
+          </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <label className="space-y-2">
-          <span className="mono-label">Language</span>
-          <select
-            name="language"
-            defaultValue={filters.language ?? "all"}
-            className="w-full rounded-2xl border border-line bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-accent"
-          >
-            <option value="all">All languages</option>
-            {filterOptions.languages.map((language) => (
-              <option key={language} value={language}>
-                {language}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="space-y-2">
-          <span className="mono-label">Repository</span>
-          <select
-            name="repository"
-            defaultValue={filters.repository ?? "all"}
-            className="w-full rounded-2xl border border-line bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-accent"
-          >
-            <option value="all">All repositories</option>
-            {filterOptions.repositories.map((repository) => (
-              <option key={repository} value={repository}>
-                {repository}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="space-y-2">
-          <span className="mono-label">Difficulty</span>
-          <select
-            name="difficulty"
-            defaultValue={filters.difficulty ?? "all"}
-            className="w-full rounded-2xl border border-line bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-accent"
-          >
-            <option value="all">All difficulty levels</option>
-            {filterOptions.difficulties.map((difficulty) => (
-              <option key={difficulty} value={difficulty}>
-                {getChallengeDifficultyMetadata(difficulty).label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="space-y-2">
-          <span className="mono-label">GitHub label</span>
-          <select
-            name="label"
-            defaultValue={filters.label ?? "all"}
-            className="w-full rounded-2xl border border-line bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-accent"
-          >
-            <option value="all">All labels</option>
-            {filterOptions.labels.map((label) => (
-              <option key={label} value={label}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="space-y-2">
-          <span className="mono-label">State</span>
-          <select
-            name="status"
-            defaultValue={filters.status ?? "all"}
-            className="w-full rounded-2xl border border-line bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-accent"
-          >
-            <option value="all">All states</option>
-            {filterOptions.statuses.map((status) => (
-              <option key={status} value={status}>
-                {getChallengeStatusMetadata(status).label}
-              </option>
-            ))}
-          </select>
-        </label>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          <button
-            type="submit"
-            className="button-primary rounded-2xl"
-          >
-            Apply Filters
-          </button>
+        <div className="surface-panel-muted grid gap-4 p-4 md:grid-cols-2 xl:grid-cols-5">
+          <label className="space-y-2">
+            <span className="mono-label">Language</span>
+            <select
+              name="language"
+              defaultValue={filters.language ?? "all"}
+              className="ui-field"
+            >
+              <option value="all">All languages</option>
+              {filterOptions.languages.map((language) => (
+                <option key={language} value={language}>
+                  {language}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="space-y-2">
+            <span className="mono-label">Repository</span>
+            <select
+              name="repository"
+              defaultValue={filters.repository ?? "all"}
+              className="ui-field"
+            >
+              <option value="all">All repositories</option>
+              {filterOptions.repositories.map((repository) => (
+                <option key={repository} value={repository}>
+                  {repository}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="space-y-2">
+            <span className="mono-label">Difficulty</span>
+            <select
+              name="difficulty"
+              defaultValue={filters.difficulty ?? "all"}
+              className="ui-field"
+            >
+              <option value="all">All difficulty levels</option>
+              {filterOptions.difficulties.map((difficulty) => (
+                <option key={difficulty} value={difficulty}>
+                  {getChallengeDifficultyMetadata(difficulty).label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="space-y-2">
+            <span className="mono-label">GitHub label</span>
+            <select
+              name="label"
+              defaultValue={filters.label ?? "all"}
+              className="ui-field"
+            >
+              <option value="all">All labels</option>
+              {filterOptions.labels.map((label) => (
+                <option key={label} value={label}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="space-y-2">
+            <span className="mono-label">State</span>
+            <select
+              name="status"
+              defaultValue={filters.status ?? "all"}
+              className="ui-field"
+            >
+              <option value="all">All states</option>
+              {filterOptions.statuses.map((status) => (
+                <option key={status} value={status}>
+                  {getChallengeStatusMetadata(status).label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       </form>
 

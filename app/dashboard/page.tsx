@@ -27,7 +27,8 @@ export default async function DashboardPage() {
     return (
       <AppShell>
         <PageContainer className="py-10 md:py-14">
-          <section className="surface-card-strong p-8 md:p-10">
+          <section className="surface-card-strong relative overflow-hidden p-8 md:p-10 lg:p-12">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent" />
             <SectionHeading
               eyebrow="Demo Auth"
               title="Sign in to start tracking saved challenges and earned score."
@@ -52,7 +53,7 @@ export default async function DashboardPage() {
                 View Leaderboard
               </Link>
             </div>
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            <div className="mt-10 grid gap-4 sm:grid-cols-3">
               <StatCard label="Saved queue" value="Track later" />
               <StatCard label="Started work" value="Continue here" />
               <StatCard label="Submissions" value="PR-linked" />
@@ -104,8 +105,9 @@ export default async function DashboardPage() {
   return (
     <AppShell>
       <PageContainer className="py-10 md:py-14">
-        <section className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="surface-card-strong p-8">
+        <section className="grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
+          <div className="surface-card-strong relative overflow-hidden p-8 lg:p-10">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent" />
             <div className="flex flex-wrap items-center justify-between gap-4">
               <p className="mono-label">Workspace</p>
               <DemoSessionForm
@@ -115,7 +117,7 @@ export default async function DashboardPage() {
               />
             </div>
             <div className="mt-5 flex items-start gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-950 font-mono text-sm font-semibold uppercase tracking-[0.2em] text-white">
+              <div className="flex h-14 w-14 items-center justify-center rounded-[1.15rem] bg-slate-950 font-mono text-sm font-semibold uppercase tracking-[0.2em] text-white shadow-[0_18px_32px_-20px_rgba(15,23,42,0.65)]">
                 {avatarInitials}
               </div>
               <div>
@@ -129,6 +131,26 @@ export default async function DashboardPage() {
                   {dashboard.user.bio}
                 </p>
               </div>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href="/dashboard/submissions"
+                className="button-primary-sm"
+              >
+                Open My Submissions
+              </Link>
+              <Link
+                href="/leaderboard"
+                className="button-secondary-sm"
+              >
+                View Leaderboard
+              </Link>
+              <Link
+                href="/challenges"
+                className="button-secondary-sm"
+              >
+                Pick Another Challenge
+              </Link>
             </div>
             <div className="mt-8 grid gap-4 sm:grid-cols-4">
               <StatCard
@@ -154,7 +176,7 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <div className="surface-card p-8">
+          <div className="surface-card p-8 lg:p-10">
             <SectionHeading
               eyebrow="Progress Overview"
               title="The first engagement layer is now persistence-backed."
@@ -177,7 +199,7 @@ export default async function DashboardPage() {
                 detail="PR links and notes now persist"
               />
             </div>
-            <div className="mt-6 rounded-2xl border border-line bg-white/70 p-5">
+            <div className="surface-panel mt-6 p-5">
               <p className="mono-label">How this works</p>
               <p className="mt-3 text-sm leading-7 text-slate-700">
                 Saving creates a lightweight engagement record, starting moves it
@@ -187,12 +209,6 @@ export default async function DashboardPage() {
                 and notes without pretending verification already exists.
               </p>
             </div>
-            <Link
-              href="/dashboard/submissions"
-              className="button-secondary-sm mt-6"
-            >
-              Open My Submissions
-            </Link>
           </div>
         </section>
 
@@ -229,11 +245,11 @@ export default async function DashboardPage() {
           />
         </div>
 
-        <section className="mt-12 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="surface-card p-8">
+        <section className="mt-12 grid gap-8 xl:grid-cols-[0.92fr_1.08fr]">
+          <div className="surface-card p-8 lg:p-10">
             <p className="mono-label">Roadmap Anchors</p>
             <div className="mt-6 space-y-4">
-              <div className="rounded-2xl border border-line bg-white/70 p-5">
+              <div className="surface-panel p-5">
                 <h2 className="text-lg font-semibold text-slate-950">
                   What comes next
                 </h2>
@@ -244,7 +260,7 @@ export default async function DashboardPage() {
                   GitHub pull request signals.
                 </p>
               </div>
-              <div className="rounded-2xl border border-line bg-white/70 p-5">
+              <div className="surface-panel p-5">
                 {/* TODO: Replace manual completion with review-backed scoring once validation signals exist. */}
                 <p className="text-sm leading-7 text-slate-700">
                   Manual completion is intentionally lightweight for the MVP, but
@@ -253,18 +269,20 @@ export default async function DashboardPage() {
                 </p>
               </div>
             </div>
-            <Link
-              href="/challenges"
-              className="button-secondary-sm mt-6"
-            >
-              Pick Another Challenge
-            </Link>
-            <Link
-              href="/leaderboard"
-              className="button-primary-sm mt-3"
-            >
-              View Leaderboard
-            </Link>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href="/challenges"
+                className="button-secondary-sm"
+              >
+                Pick Another Challenge
+              </Link>
+              <Link
+                href="/leaderboard"
+                className="button-primary-sm"
+              >
+                View Leaderboard
+              </Link>
+            </div>
           </div>
 
           <div>

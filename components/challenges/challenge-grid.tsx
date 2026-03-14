@@ -28,7 +28,7 @@ export function ChallengeGrid({
 
   return (
     <div>
-      <div className={cn("grid gap-5 xl:grid-cols-2", className)}>
+      <div className={cn("grid gap-6 xl:grid-cols-2", className)}>
         {challenges.map((challenge) => (
           <ChallengeCard
             key={challenge.id}

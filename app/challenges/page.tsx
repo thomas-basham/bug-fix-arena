@@ -75,25 +75,48 @@ export default async function ChallengesPage({
   return (
     <AppShell>
       <PageContainer className="py-10 md:py-14">
-        <section className="surface-card-strong p-8 md:p-10">
+        <section className="surface-card-strong relative overflow-hidden p-8 md:p-10 lg:p-12">
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent" />
           <SectionHeading
             eyebrow="Challenge Catalog"
             title="Browse real-world issues shaped into structured starter challenges."
             description="Search by keyword, filter by repository or issue shape, sort the feed, and share the exact catalog view through the URL."
           />
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Badge tone={sourceMetadata.badgeTone}>
-              {sourceMetadata.label}
-            </Badge>
-            {discoveryLabels.map((label) => (
-              <Badge key={label}>{label}</Badge>
-            ))}
-            <Link
-              href="/dashboard"
-              className="button-secondary-sm ml-auto"
-            >
-              Go to Dashboard
-            </Link>
+          <div className="mt-8 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge tone={sourceMetadata.badgeTone}>
+                {sourceMetadata.label}
+              </Badge>
+              {discoveryLabels.map((label) => (
+                <Badge key={label}>{label}</Badge>
+              ))}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[28rem]">
+              <div className="surface-panel p-4">
+                <p className="mono-label">Visible</p>
+                <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+                  {pagination.endIndex === 0
+                    ? 0
+                    : pagination.endIndex - pagination.startIndex + 1}
+                </p>
+                <p className="mt-1 text-sm text-slate-600">Challenges on page</p>
+              </div>
+              <div className="surface-panel p-4">
+                <p className="mono-label">Matches</p>
+                <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+                  {catalog.filteredChallenges}
+                </p>
+                <p className="mt-1 text-sm text-slate-600">After active filters</p>
+              </div>
+              <div className="flex items-end">
+                <Link
+                  href="/dashboard"
+                  className="button-secondary w-full"
+                >
+                  Go to Dashboard
+                </Link>
+              </div>
+            </div>
           </div>
         </section>
 

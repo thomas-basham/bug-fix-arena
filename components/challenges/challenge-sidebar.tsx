@@ -14,7 +14,7 @@ export function ChallengeSidebar({ challenge }: ChallengeSidebarProps) {
       <div className="surface-card-strong p-8">
         <p className="mono-label">Repository Metadata</p>
         <div className="mt-6 space-y-4">
-          <div className="rounded-2xl border border-line bg-white/70 p-4">
+          <div className="surface-panel p-4">
             <p className="mono-label">Repository</p>
             <p className="mt-2 font-medium text-slate-900">
               {challenge.repository.fullName}
@@ -24,25 +24,25 @@ export function ChallengeSidebar({ challenge }: ChallengeSidebarProps) {
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-            <div className="rounded-2xl border border-line bg-white/70 p-4">
+            <div className="surface-panel p-4">
               <p className="mono-label">Primary language</p>
               <p className="mt-2 font-medium text-slate-900">
                 {viewModel.languageLabel}
               </p>
             </div>
-            <div className="rounded-2xl border border-line bg-white/70 p-4">
+            <div className="surface-panel p-4">
               <p className="mono-label">Stars</p>
               <p className="mt-2 font-medium text-slate-900">
                 {formatNumber(challenge.repository.stars)}
               </p>
             </div>
-            <div className="rounded-2xl border border-line bg-white/70 p-4">
+            <div className="surface-panel p-4">
               <p className="mono-label">Open issues</p>
               <p className="mt-2 font-medium text-slate-900">
                 {formatNumber(challenge.repository.openIssues)}
               </p>
             </div>
-            <div className="rounded-2xl border border-line bg-white/70 p-4">
+            <div className="surface-panel p-4">
               <p className="mono-label">Issue state</p>
               <p className="mt-2 font-medium text-slate-900">{viewModel.statusLabel}</p>
             </div>
@@ -53,31 +53,31 @@ export function ChallengeSidebar({ challenge }: ChallengeSidebarProps) {
       <div className="surface-card p-8">
         <p className="mono-label">Difficulty And Reward</p>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-          <div className="rounded-2xl border border-line bg-white/70 p-4">
+          <div className="surface-panel p-4">
             <p className="mono-label">Estimated time</p>
             <p className="mt-2 font-medium text-slate-900">
               {viewModel.estimatedMinutesLabel}
             </p>
           </div>
-          <div className="rounded-2xl border border-line bg-white/70 p-4">
+          <div className="surface-panel p-4">
             <p className="mono-label">Reward points</p>
             <p className="mt-2 font-medium text-slate-900">
               {viewModel.rewardPointsLabel}
             </p>
           </div>
-          <div className="rounded-2xl border border-line bg-white/70 p-4">
+          <div className="surface-panel p-4">
             <p className="mono-label">Completion bonus</p>
             <p className="mt-2 font-medium text-slate-900">
               {viewModel.completionPointsLabel}
             </p>
           </div>
-          <div className="rounded-2xl border border-line bg-white/70 p-4">
+          <div className="surface-panel p-4">
             <p className="mono-label">Total available</p>
             <p className="mt-2 font-medium text-slate-900">
               {viewModel.totalPointsLabel}
             </p>
           </div>
-          <div className="rounded-2xl border border-line bg-white/70 p-4">
+          <div className="surface-panel p-4">
             <p className="mono-label">Difficulty</p>
             <p className="mt-2 font-medium text-slate-900">
               {viewModel.difficultyLabel}

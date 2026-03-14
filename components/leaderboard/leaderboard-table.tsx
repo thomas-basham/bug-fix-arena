@@ -12,7 +12,7 @@ export function LeaderboardTable({
   entries,
 }: LeaderboardTableProps) {
   return (
-    <div className="overflow-hidden rounded-[1.75rem] border border-line bg-white/80 shadow-[0_18px_50px_-40px_var(--shadow)]">
+    <div className="overflow-hidden rounded-[2rem] border border-line bg-white/82 shadow-[0_24px_60px_-36px_var(--shadow)] backdrop-blur">
       <div className="grid grid-cols-[0.7fr_1.8fr_1fr_1fr] gap-4 border-b border-line bg-slate-950 px-5 py-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-200 md:grid-cols-[0.7fr_2fr_1.1fr_1fr_1.1fr]">
         <span>Rank</span>
         <span>Contributor</span>
@@ -28,8 +28,8 @@ export function LeaderboardTable({
             <article
               key={entry.user.id}
               className={cn(
-                "grid grid-cols-[0.7fr_1.8fr_1fr_1fr] gap-4 px-5 py-5 text-sm text-slate-700 md:grid-cols-[0.7fr_2fr_1.1fr_1fr_1.1fr]",
-                isCurrentUser && "bg-amber-50/70",
+                "grid grid-cols-[0.7fr_1.8fr_1fr_1fr] gap-4 px-5 py-5 text-sm text-slate-700 transition-colors md:grid-cols-[0.7fr_2fr_1.1fr_1fr_1.1fr]",
+                isCurrentUser ? "bg-amber-50/75" : "bg-white/60",
               )}
             >
               <div className="flex items-center">

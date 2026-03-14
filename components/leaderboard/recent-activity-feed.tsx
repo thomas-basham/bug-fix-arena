@@ -13,7 +13,7 @@ export function RecentActivityFeed({ items }: RecentActivityFeedProps) {
       {items.map((item) => (
         <article
           key={item.id}
-          className="rounded-2xl border border-line bg-white/75 p-5"
+          className="surface-panel p-5"
         >
           <div className="flex flex-wrap items-center gap-3">
             <p className="font-semibold text-slate-950">{item.user.name}</p>

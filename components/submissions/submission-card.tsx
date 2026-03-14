@@ -16,7 +16,8 @@ export function SubmissionCard({
   const viewModel = buildSubmissionViewModel(submission);
 
   return (
-    <article className="surface-card p-6">
+    <article className="surface-card relative overflow-hidden p-6">
+      <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent" />
       <div className="flex flex-wrap items-center gap-3">
         <p className="mono-label">Submission</p>
         <Badge tone={viewModel.statusTone}>{viewModel.statusLabel}</Badge>
@@ -51,7 +52,7 @@ export function SubmissionCard({
         </p>
       )}
       <dl className="mt-5 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-2xl border border-line bg-white/75 p-4">
+        <div className="surface-panel p-4">
           <dt className="mono-label">PR Link</dt>
           <dd className="mt-2 text-sm font-medium text-slate-900">
             {submission.githubPrUrl ? (
@@ -68,7 +69,7 @@ export function SubmissionCard({
             )}
           </dd>
         </div>
-        <div className="rounded-2xl border border-line bg-white/75 p-4">
+        <div className="surface-panel p-4">
           <dt className="mono-label">Fork</dt>
           <dd className="mt-2 text-sm font-medium text-slate-900">
             {submission.githubForkUrl ? (

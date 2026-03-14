@@ -34,9 +34,12 @@ export function ChallengePagination({
       aria-label="Challenge pagination"
       className="surface-card flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between"
     >
-      <p className="text-sm text-slate-700">
-        Page {currentPage} of {totalPages}
-      </p>
+      <div>
+        <p className="mono-label">Catalog Pages</p>
+        <p className="mt-2 text-sm text-slate-700">
+          Page {currentPage} of {totalPages}
+        </p>
+      </div>
 
       <div className="flex flex-wrap items-center gap-2">
         {hasPreviousPage && previousHref ? (
