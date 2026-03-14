@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChallengeEngagementPanel } from "@/components/challenges/challenge-engagement-panel";
+import { ChallengeSubmissionPanel } from "@/components/challenges/challenge-submission-panel";
 import { RelatedChallengesList } from "@/components/challenges/related-challenges-list";
 import { ChallengeSidebar } from "@/components/challenges/challenge-sidebar";
 import { AppShell } from "@/components/layout/app-shell";
@@ -17,6 +18,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { buildChallengeDetailViewModel } from "@/lib/challenges/view-models";
 import { getChallengeBySlug, getChallengeDetailSnapshot } from "@/lib/data/catalog";
 import { getChallengeEngagementForUser } from "@/lib/engagement/service";
+import { getSubmissionForUserAndChallenge } from "@/lib/submissions/service";
 import { formatRelativeDate } from "@/lib/utils";
 
 type ChallengeDetailPageProps = {
@@ -67,9 +69,12 @@ export default async function ChallengeDetailPage({
     getCurrentUser(),
     Promise.resolve(buildChallengeDetailViewModel(challenge)),
   ]);
-  const engagement = user
-    ? await getChallengeEngagementForUser(user.id, challenge.id)
-    : null;
+  const [engagement, submission] = user
+    ? await Promise.all([
+        getChallengeEngagementForUser(user.id, challenge.id),
+        getSubmissionForUserAndChallenge(user.id, challenge.id),
+      ])
+    : [null, null];
   const backHref = buildChallengeCatalogHref(catalogState);
   const currentDetailHref = buildChallengeDetailHref(challenge.slug, catalogState);
   const relatedHrefBySlug = Object.fromEntries(
@@ -286,6 +291,12 @@ export default async function ChallengeDetailPage({
               challenge={challenge}
               engagement={engagement}
               redirectTo={currentDetailHref}
+              user={user}
+            />
+            <ChallengeSubmissionPanel
+              challengeSlug={challenge.slug}
+              redirectTo={currentDetailHref}
+              submission={submission}
               user={user}
             />
             <ChallengeSidebar challenge={challenge} />

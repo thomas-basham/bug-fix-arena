@@ -55,7 +55,7 @@ export default async function DashboardPage() {
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               <StatCard label="Saved queue" value="Track later" />
               <StatCard label="Started work" value="Continue here" />
-              <StatCard label="Manual completion" value="Points ready" />
+              <StatCard label="Submissions" value="PR-linked" />
             </div>
           </section>
 
@@ -130,7 +130,7 @@ export default async function DashboardPage() {
                 </p>
               </div>
             </div>
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            <div className="mt-8 grid gap-4 sm:grid-cols-4">
               <StatCard
                 label="Total score"
                 value={dashboard.score.totalPoints.toString()}
@@ -145,6 +145,11 @@ export default async function DashboardPage() {
                 label="Completed"
                 value={dashboard.score.completedChallenges.toString()}
                 detail="Manual completions so far"
+              />
+              <StatCard
+                label="Submissions"
+                value={dashboard.submissionCount.toString()}
+                detail="Tracked PR-based records"
               />
             </div>
           </div>
@@ -166,6 +171,11 @@ export default async function DashboardPage() {
                 value="Manual"
                 detail="Automated scoring can layer on later"
               />
+              <StatCard
+                label="Submission flow"
+                value={dashboard.submissionCount.toString()}
+                detail="PR links and notes now persist"
+              />
             </div>
             <div className="mt-6 rounded-2xl border border-line bg-white/70 p-5">
               <p className="mono-label">How this works</p>
@@ -173,9 +183,16 @@ export default async function DashboardPage() {
                 Saving creates a lightweight engagement record, starting moves it
                 into active work, and manual completion snapshots the awarded points
                 so leaderboard logic can be automated later without changing the
-                relationship model.
+                relationship model. Separate submission records now hold PR links
+                and notes without pretending verification already exists.
               </p>
             </div>
+            <Link
+              href="/dashboard/submissions"
+              className="button-secondary-sm mt-6"
+            >
+              Open My Submissions
+            </Link>
           </div>
         </section>
 
@@ -222,8 +239,9 @@ export default async function DashboardPage() {
                 </h2>
                 <p className="mt-3 text-sm leading-7 text-slate-700">
                   The dashboard now has a real persistence layer for engagement.
-                  Next, that same model can power structured submissions, review,
-                  and verified score updates tied to real submissions.
+                  Structured submissions now live alongside engagement state.
+                  The next layer is tying review and score updates to verified
+                  GitHub pull request signals.
                 </p>
               </div>
               <div className="rounded-2xl border border-line bg-white/70 p-5">
