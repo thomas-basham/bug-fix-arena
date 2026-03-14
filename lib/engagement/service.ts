@@ -23,10 +23,9 @@ import {
 } from "@/lib/db/mappers";
 import { prisma } from "@/lib/db/client";
 import {
-  SCORE_STREAK_SETTINGS,
-  getChallengePointBreakdown,
-  getScoreRankLabel,
-} from "@/lib/config/challenges";
+  buildScoreSummary,
+  getAwardedPointsForChallenge,
+} from "@/lib/engagement/scoring";
 
 function mapPublicUserRecord(user: {
   id: string;
@@ -81,33 +80,6 @@ function mapDashboardChallengeRecord(engagement: {
   return {
     engagement: mapEngagementRecord(engagement),
     challenge: mapChallengeModelToRecord(engagement.challenge),
-  };
-}
-
-function getAwardedPointsForChallenge(challenge: ChallengeRecord) {
-  return getChallengePointBreakdown(challenge.difficulty, challenge.points).totalPoints;
-}
-
-function buildScoreSummary(
-  completedEngagements: Array<{
-    pointsAwarded: number;
-  }>,
-) {
-  const totalPoints = completedEngagements.reduce(
-    (sum, engagement) => sum + engagement.pointsAwarded,
-    0,
-  );
-  const completedChallenges = completedEngagements.length;
-
-  return {
-    totalPoints,
-    completedChallenges,
-    currentStreak: SCORE_STREAK_SETTINGS.enabled
-      ? completedChallenges > 0
-        ? Math.max(1, SCORE_STREAK_SETTINGS.placeholderValue)
-        : SCORE_STREAK_SETTINGS.placeholderValue
-      : SCORE_STREAK_SETTINGS.placeholderValue,
-    rankLabel: getScoreRankLabel(totalPoints),
   };
 }
 

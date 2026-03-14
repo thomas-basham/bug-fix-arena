@@ -12,33 +12,12 @@ import {
   normalizeSubmissionNotes,
   normalizeSubmissionPrUrl,
 } from "@/lib/submissions/normalize";
+import { resolveNextSubmissionStatus, type SubmissionIntent } from "@/lib/submissions/lifecycle";
 import type {
   ChallengeRecord,
   SubmissionRecord,
-  SubmissionStatus,
   UserSubmissionsSnapshot,
 } from "@/types/domain";
-
-type SubmissionIntent = "draft" | "submit";
-
-function resolveNextSubmissionStatus(
-  currentStatus: SubmissionStatus | undefined,
-  intent: SubmissionIntent,
-): SubmissionStatus {
-  if (
-    currentStatus === "under_review" ||
-    currentStatus === "accepted" ||
-    currentStatus === "rejected"
-  ) {
-    return currentStatus;
-  }
-
-  if (intent === "submit" || currentStatus === "submitted") {
-    return "submitted";
-  }
-
-  return "draft";
-}
 
 export async function getSubmissionForUserAndChallenge(
   userId: string,
