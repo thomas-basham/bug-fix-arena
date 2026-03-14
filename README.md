@@ -1,5 +1,7 @@
 # Open Source Bug Fix Arena
 
+**Deployed Site:** [https://main.d3it84bzc6jetr.amplifyapp.com](https://main.d3it84bzc6jetr.amplifyapp.com)
+
 Open Source Bug Fix Arena is a developer-focused MVP for discovering
 beginner-friendly open source issues, turning them into structured challenge
 briefs, and drafting a practical fix workflow before a pull request exists.
