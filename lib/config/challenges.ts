@@ -134,6 +134,16 @@ type ChallengeEngagementStatusMetadata = {
   badgeTone: "muted" | "accent" | "success";
 };
 
+export const SUBMISSION_STATUSES = [
+  "draft",
+  "submitted",
+  "under_review",
+  "accepted",
+  "rejected",
+] as const;
+
+export type SubmissionStatusValue = (typeof SUBMISSION_STATUSES)[number];
+
 export const SUBMISSION_STATUS_METADATA = {
   draft: {
     label: "Draft",
@@ -141,6 +151,10 @@ export const SUBMISSION_STATUS_METADATA = {
   },
   submitted: {
     label: "Submitted",
+    badgeTone: "accent",
+  },
+  under_review: {
+    label: "Under Review",
     badgeTone: "accent",
   },
   accepted: {
@@ -152,7 +166,7 @@ export const SUBMISSION_STATUS_METADATA = {
     badgeTone: "warning",
   },
 } as const satisfies Record<
-  "draft" | "submitted" | "accepted" | "rejected",
+  SubmissionStatusValue,
   SubmissionStatusMetadata
 >;
 
@@ -321,7 +335,7 @@ export function getChallengeSourceMetadata(source: "github" | "mock") {
 }
 
 export function getSubmissionStatusMetadata(
-  status: "draft" | "submitted" | "accepted" | "rejected",
+  status: SubmissionStatusValue,
 ) {
   return SUBMISSION_STATUS_METADATA[status];
 }

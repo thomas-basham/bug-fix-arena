@@ -25,7 +25,11 @@ export type ChallengeWithRepositoryModel = Prisma.ChallengeGetPayload<{
 
 export type SubmissionWithChallengeModel = Prisma.SubmissionGetPayload<{
   include: {
-    challenge: true;
+    challenge: {
+      include: {
+        repository: true;
+      };
+    };
   };
 }>;
 

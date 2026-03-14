@@ -13,14 +13,13 @@ import type {
   UserDashboardSnapshot,
 } from "@/types/domain";
 import { mockUsers } from "@/lib/data/mock-data";
+import { ensureChallengeSnapshot } from "@/lib/challenges/persistence";
 import {
   mapChallengeModelToRecord,
   toDomainChallengeCompletionMethod,
   toDomainChallengeEngagementStatus,
   toPrismaChallengeCompletionMethod,
   toPrismaChallengeEngagementStatus,
-  toPrismaChallengeSource,
-  toPrismaChallengeStatus,
 } from "@/lib/db/mappers";
 import { prisma } from "@/lib/db/client";
 import {
@@ -148,98 +147,6 @@ async function syncUserScore(userId: string) {
   });
 }
 
-async function ensureChallengeSnapshot(challenge: ChallengeRecord) {
-  await prisma.repository.upsert({
-    where: {
-      id: challenge.repository.id,
-    },
-    update: {
-      githubRepositoryId: challenge.repository.githubRepositoryId,
-      owner: challenge.repository.owner,
-      name: challenge.repository.name,
-      fullName: challenge.repository.fullName,
-      description: challenge.repository.description,
-      language: challenge.repository.language,
-      stars: challenge.repository.stars,
-      openIssues: challenge.repository.openIssues,
-      url: challenge.repository.url,
-    },
-    create: {
-      id: challenge.repository.id,
-      githubRepositoryId: challenge.repository.githubRepositoryId,
-      owner: challenge.repository.owner,
-      name: challenge.repository.name,
-      fullName: challenge.repository.fullName,
-      description: challenge.repository.description,
-      language: challenge.repository.language,
-      stars: challenge.repository.stars,
-      openIssues: challenge.repository.openIssues,
-      url: challenge.repository.url,
-    },
-  });
-
-  await prisma.challenge.upsert({
-    where: {
-      id: challenge.id,
-    },
-    update: {
-      githubNodeId: challenge.githubNodeId,
-      githubIssueId: challenge.githubIssueId,
-      slug: challenge.slug,
-      title: challenge.title,
-      summary: challenge.summary,
-      body: challenge.body,
-      difficulty: challenge.difficulty,
-      status: toPrismaChallengeStatus(challenge.status),
-      source: toPrismaChallengeSource(challenge.source),
-      sourceCreatedAt: new Date(challenge.openedAt),
-      sourceUpdatedAt: new Date(challenge.updatedAt),
-      lastSyncedAt: challenge.lastSyncedAt
-        ? new Date(challenge.lastSyncedAt)
-        : undefined,
-      inactiveReason: challenge.inactiveReason ?? null,
-      labels: challenge.labels,
-      techStack: challenge.techStack,
-      issueNumber: challenge.issueNumber,
-      issueUrl: challenge.issueUrl,
-      estimatedMinutes: challenge.estimatedMinutes,
-      points: challenge.points,
-      acceptanceCriteria: challenge.acceptanceCriteria,
-      workflowSteps: challenge.workflowSteps,
-      learningOutcomes: challenge.learningOutcomes,
-      repositoryId: challenge.repository.id,
-    },
-    create: {
-      id: challenge.id,
-      githubNodeId: challenge.githubNodeId,
-      githubIssueId: challenge.githubIssueId,
-      slug: challenge.slug,
-      title: challenge.title,
-      summary: challenge.summary,
-      body: challenge.body,
-      difficulty: challenge.difficulty,
-      status: toPrismaChallengeStatus(challenge.status),
-      source: toPrismaChallengeSource(challenge.source),
-      sourceCreatedAt: new Date(challenge.openedAt),
-      sourceUpdatedAt: new Date(challenge.updatedAt),
-      lastSyncedAt: challenge.lastSyncedAt
-        ? new Date(challenge.lastSyncedAt)
-        : undefined,
-      inactiveReason: challenge.inactiveReason ?? null,
-      labels: challenge.labels,
-      techStack: challenge.techStack,
-      issueNumber: challenge.issueNumber,
-      issueUrl: challenge.issueUrl,
-      estimatedMinutes: challenge.estimatedMinutes,
-      points: challenge.points,
-      acceptanceCriteria: challenge.acceptanceCriteria,
-      workflowSteps: challenge.workflowSteps,
-      learningOutcomes: challenge.learningOutcomes,
-      repositoryId: challenge.repository.id,
-    },
-  });
-}
-
 export async function getChallengeEngagementForUser(
   userId: string,
   challengeId: string,
@@ -323,7 +230,7 @@ export async function setChallengeEngagementStatus(options: {
 export async function getUserDashboardSnapshot(
   userId: string,
 ): Promise<UserDashboardSnapshot | null> {
-  const [user, score, engagements] = await Promise.all([
+  const [user, score, engagements, submissionCount] = await Promise.all([
     prisma.user.findUnique({
       where: {
         id: userId,
@@ -358,6 +265,11 @@ export async function getUserDashboardSnapshot(
           updatedAt: "desc",
         },
       ],
+    }),
+    prisma.submission.count({
+      where: {
+        userId,
+      },
     }),
   ]);
 
@@ -405,6 +317,7 @@ export async function getUserDashboardSnapshot(
           rankLabel: score.rankLabel,
         }
       : fallbackScore,
+    submissionCount,
     savedChallenges: mappedEngagements.filter(
       (entry) => entry.engagement.status === "saved",
     ),

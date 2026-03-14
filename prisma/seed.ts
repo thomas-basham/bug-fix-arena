@@ -107,10 +107,13 @@ async function main() {
     await prisma.submission.create({
       data: {
         id: submission.id,
-        title: submission.title,
-        summary: submission.summary,
-        checklist: submission.checklist,
         status: toPrismaSubmissionStatus(submission.status),
+        notes: submission.notes,
+        githubPrUrl: submission.githubPrUrl,
+        githubForkUrl: submission.githubForkUrl,
+        submittedAt: submission.submittedAt
+          ? new Date(submission.submittedAt)
+          : undefined,
         challengeId: submission.challengeId,
         userId: submission.userId,
       },

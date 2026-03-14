@@ -14,11 +14,13 @@ import type {
   ChallengeSource,
   ChallengeStatus,
   RepositoryRecord,
+  SubmissionRecord,
   SubmissionStatus,
 } from "@/types/domain";
 import type {
   ChallengeWithRepositoryModel,
   RepositoryModel,
+  SubmissionWithChallengeModel,
 } from "@/types/database";
 
 const challengeStatusMap = {
@@ -37,6 +39,7 @@ const submissionStatusMap = {
   draft: PrismaSubmissionStatus.DRAFT,
   rejected: PrismaSubmissionStatus.REJECTED,
   submitted: PrismaSubmissionStatus.SUBMITTED,
+  under_review: PrismaSubmissionStatus.UNDER_REVIEW,
 } as const satisfies Record<SubmissionStatus, PrismaSubmissionStatus>;
 
 const challengeEngagementStatusMap = {
@@ -158,4 +161,30 @@ export function mapChallengeModelToRecord(
     learningOutcomes: [...challenge.learningOutcomes],
     recentActivity: [],
   });
+}
+
+export function toDomainSubmissionStatus(
+  status: PrismaSubmissionStatus,
+): SubmissionStatus {
+  return status.toLowerCase() as SubmissionStatus;
+}
+
+export function mapSubmissionModelToRecord(
+  submission: SubmissionWithChallengeModel,
+): SubmissionRecord {
+  return {
+    id: submission.id,
+    challengeId: submission.challengeId,
+    challengeSlug: submission.challenge.slug,
+    challengeTitle: submission.challenge.title,
+    challengeRepositoryFullName: submission.challenge.repository.fullName,
+    userId: submission.userId,
+    status: toDomainSubmissionStatus(submission.status),
+    notes: submission.notes ?? undefined,
+    githubPrUrl: submission.githubPrUrl ?? undefined,
+    githubForkUrl: submission.githubForkUrl ?? undefined,
+    createdAt: submission.createdAt.toISOString(),
+    updatedAt: submission.updatedAt.toISOString(),
+    submittedAt: submission.submittedAt?.toISOString(),
+  };
 }

@@ -20,6 +20,7 @@ enum ChallengeSource {
 enum SubmissionStatus {
   DRAFT
   SUBMITTED
+  UNDER_REVIEW
   ACCEPTED
   REJECTED
 }
@@ -110,17 +111,22 @@ model Challenge {
 }
 
 model Submission {
-  id          String           @id @default(cuid())
-  title       String
-  summary     String
-  checklist   String[]
-  status      SubmissionStatus @default(DRAFT)
-  challengeId String
-  challenge   Challenge        @relation(fields: [challengeId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id            String           @id @default(cuid())
+  status        SubmissionStatus @default(DRAFT)
+  notes         String?
+  githubPrUrl   String?
+  githubForkUrl String?
+  submittedAt   DateTime?
+  challengeId   String
+  challenge     Challenge        @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@unique([userId, challengeId])
+  @@index([userId, status])
+  @@index([status, submittedAt])
 }
 
 model Score {

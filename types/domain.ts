@@ -97,15 +97,18 @@ export type PublicUserRecord = {
 
 export type SubmissionRecord = {
   id: string;
-  title: string;
-  summary: string;
   challengeId: string;
   challengeSlug: string;
   challengeTitle: string;
+  challengeRepositoryFullName: string;
   userId: string;
   status: SubmissionStatus;
+  notes?: string;
+  githubPrUrl?: string;
+  githubForkUrl?: string;
+  createdAt: string;
   updatedAt: string;
-  checklist: string[];
+  submittedAt?: string;
 };
 
 export type ChallengeEngagementRecord = {
@@ -180,9 +183,23 @@ export type ChallengeSyncOverviewRecord = {
   archivedSyncedChallenges: number;
 };
 
+export type SubmissionStatusSummaryRecord = {
+  draft: number;
+  submitted: number;
+  under_review: number;
+  accepted: number;
+  rejected: number;
+};
+
+export type UserSubmissionsSnapshot = {
+  submissions: SubmissionRecord[];
+  counts: SubmissionStatusSummaryRecord;
+};
+
 export type UserDashboardSnapshot = {
   user: UserRecord;
   score: ScoreRecord;
+  submissionCount: number;
   savedChallenges: DashboardChallengeRecord[];
   startedChallenges: DashboardChallengeRecord[];
   completedChallenges: DashboardChallengeRecord[];
