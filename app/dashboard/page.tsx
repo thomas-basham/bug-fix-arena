@@ -37,17 +37,17 @@ export default async function DashboardPage() {
               <DemoSessionForm
                 mode="sign-in"
                 redirectTo="/dashboard"
-                className="inline-flex items-center rounded-full bg-slate-950 px-6 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+                className="button-primary"
               />
               <Link
                 href="/challenges"
-                className="inline-flex items-center rounded-full border border-line bg-white/80 px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-white"
+                className="button-secondary"
               >
                 Browse Challenges
               </Link>
               <Link
                 href="/leaderboard"
-                className="inline-flex items-center rounded-full border border-line bg-white/80 px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-white"
+                className="button-secondary"
               >
                 View Leaderboard
               </Link>
@@ -79,7 +79,7 @@ export default async function DashboardPage() {
                 action={
                   <Link
                     href="/challenges"
-                    className="inline-flex items-center rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+                    className="button-primary"
                   >
                     Open Challenge Feed
                   </Link>
@@ -111,7 +111,7 @@ export default async function DashboardPage() {
               <DemoSessionForm
                 mode="sign-out"
                 redirectTo="/"
-                className="inline-flex items-center rounded-full border border-line bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-white"
+                className="button-secondary-sm"
               />
             </div>
             <div className="mt-5 flex items-start gap-4">
@@ -237,13 +237,13 @@ export default async function DashboardPage() {
             </div>
             <Link
               href="/challenges"
-              className="mt-6 inline-flex items-center rounded-full border border-line bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-white"
+              className="button-secondary-sm mt-6"
             >
               Pick Another Challenge
             </Link>
             <Link
               href="/leaderboard"
-              className="mt-3 inline-flex items-center rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+              className="button-primary-sm mt-3"
             >
               View Leaderboard
             </Link>

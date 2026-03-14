@@ -42,7 +42,7 @@ export function ChallengePagination({
         {hasPreviousPage && previousHref ? (
           <Link
             href={previousHref}
-            className="inline-flex items-center rounded-full border border-line bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-white"
+            className="button-secondary-sm"
           >
             Previous
           </Link>
@@ -55,8 +55,8 @@ export function ChallengePagination({
             aria-current={pageLink.isCurrent ? "page" : undefined}
             className={
               pageLink.isCurrent
-                ? "inline-flex h-10 min-w-10 items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white"
-                : "inline-flex h-10 min-w-10 items-center justify-center rounded-full border border-line bg-white/80 px-4 text-sm font-medium text-slate-900 transition hover:bg-white"
+                ? "button-pagination-current"
+                : "button-pagination"
             }
           >
             {pageLink.page}
@@ -66,7 +66,7 @@ export function ChallengePagination({
         {hasNextPage && nextHref ? (
           <Link
             href={nextHref}
-            className="inline-flex items-center rounded-full border border-line bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-white"
+            className="button-secondary-sm"
           >
             Next
           </Link>

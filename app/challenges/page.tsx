@@ -90,7 +90,7 @@ export default async function ChallengesPage({
             ))}
             <Link
               href="/dashboard"
-              className="ml-auto inline-flex items-center rounded-full border border-line bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-white"
+              className="button-secondary-sm ml-auto"
             >
               Go to Dashboard
             </Link>
@@ -122,7 +122,7 @@ export default async function ChallengesPage({
               action: (
                 <Link
                   href="/challenges"
-                  className="inline-flex items-center rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+                  className="button-primary"
                 >
                   Reset Filters
                 </Link>

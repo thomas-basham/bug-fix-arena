@@ -7,6 +7,7 @@ import {
 } from "@/lib/engagement/actions";
 import { buildChallengeViewModel } from "@/lib/challenges/view-models";
 import { getChallengeEngagementStatusMetadata } from "@/lib/config/challenges";
+import { cn } from "@/lib/utils";
 import type {
   ChallengeEngagementRecord,
   ChallengeRecord,
@@ -19,6 +20,13 @@ type ChallengeEngagementPanelProps = {
   redirectTo: string;
   user: UserRecord | null;
 };
+
+const actionButtonBaseClass =
+  "inline-flex items-center justify-center rounded-full px-4 py-3 text-sm font-semibold appearance-none transition focus-visible:outline-none focus-visible:ring-2";
+
+const primaryActionButtonClass = `${actionButtonBaseClass} bg-accent text-white shadow-[0_14px_32px_-20px_rgba(15,118,110,0.65)] hover:brightness-95 focus-visible:ring-accent/35`;
+
+const secondaryActionButtonClass = `${actionButtonBaseClass} border border-slate-300 bg-white/95 text-slate-950 hover:bg-white focus-visible:ring-slate-900/10`;
 
 function EngagementActionButton({
   action,
@@ -41,11 +49,12 @@ function EngagementActionButton({
       <input type="hidden" name="redirectTo" value={redirectTo} />
       <button
         type="submit"
-        className={
+        className={cn(
           tone === "dark"
-            ? `inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 ${fullWidth ? "w-full" : ""}`
-            : `inline-flex items-center justify-center rounded-full border border-line bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-white ${fullWidth ? "w-full" : ""}`
-        }
+            ? primaryActionButtonClass
+            : secondaryActionButtonClass,
+          fullWidth && "w-full",
+        )}
       >
         {label}
       </button>
@@ -76,14 +85,14 @@ export function ChallengeEngagementPanel({
         <DemoSessionForm
           mode="sign-in"
           redirectTo={redirectTo}
-          className="mt-6 inline-flex items-center rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+          className={cn("mt-6", primaryActionButtonClass)}
         />
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <a
             href={challenge.issueUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center justify-center rounded-full border border-line bg-white/80 px-4 py-3 text-sm font-medium text-slate-900 transition hover:bg-white"
+            className={secondaryActionButtonClass}
           >
             Visit GitHub Issue
           </a>
@@ -91,7 +100,7 @@ export function ChallengeEngagementPanel({
             href={challenge.repository.url}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center justify-center rounded-full border border-line bg-white/80 px-4 py-3 text-sm font-medium text-slate-900 transition hover:bg-white"
+            className={secondaryActionButtonClass}
           >
             View Repository
           </a>
@@ -144,7 +153,7 @@ export function ChallengeEngagementPanel({
           href={challenge.issueUrl}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center justify-center rounded-full border border-line bg-white/80 px-4 py-3 text-sm font-medium text-slate-900 transition hover:bg-white"
+          className={secondaryActionButtonClass}
         >
           Visit GitHub Issue
         </a>
@@ -152,7 +161,7 @@ export function ChallengeEngagementPanel({
           href={challenge.repository.url}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center justify-center rounded-full border border-line bg-white/80 px-4 py-3 text-sm font-medium text-slate-900 transition hover:bg-white"
+          className={secondaryActionButtonClass}
         >
           View Repository
         </a>

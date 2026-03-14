@@ -64,7 +64,7 @@ export function ChallengeCard({ challenge, href }: ChallengeCardProps) {
         </div>
         <Link
           href={href ?? `/challenges/${challenge.slug}`}
-          className="inline-flex items-center rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+          className="button-primary-sm"
         >
           Open Challenge
         </Link>

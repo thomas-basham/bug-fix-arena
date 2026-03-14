@@ -38,13 +38,13 @@ export default async function Home() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/challenges"
-                className="inline-flex items-center justify-center rounded-full bg-slate-950 px-6 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+                className="button-primary"
               >
                 Browse Challenges
               </Link>
               <Link
                 href="/dashboard"
-                className="inline-flex items-center justify-center rounded-full border border-line bg-white/70 px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-white"
+                className="button-secondary"
               >
                 Open Dashboard
               </Link>
@@ -135,7 +135,7 @@ export default async function Home() {
             action={
               <Link
                 href="/challenges"
-                className="inline-flex items-center rounded-full border border-line bg-white/70 px-5 py-2.5 text-sm font-medium text-slate-900 transition hover:bg-white"
+                className="button-secondary-sm"
               >
                 View All
               </Link>
@@ -153,7 +153,7 @@ export default async function Home() {
                 action: (
                   <Link
                     href="/challenges"
-                    className="inline-flex items-center rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+                    className="button-primary"
                   >
                     Open Catalog
                   </Link>

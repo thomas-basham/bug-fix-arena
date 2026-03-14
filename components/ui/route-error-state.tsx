@@ -41,14 +41,14 @@ export function RouteErrorState({
               <button
                 type="button"
                 onClick={reset}
-                className="inline-flex items-center rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+                className="button-primary"
               >
                 Try Again
               </button>
               {secondaryHref && secondaryLabel ? (
                 <Link
                   href={secondaryHref}
-                  className="inline-flex items-center rounded-full border border-line bg-white/80 px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-white"
+                  className="button-secondary"
                 >
                   {secondaryLabel}
                 </Link>

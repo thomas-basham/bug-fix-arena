@@ -29,7 +29,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             <button
               type="button"
               onClick={reset}
-              className="mt-8 inline-flex items-center rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+              className="button-primary mt-8"
             >
               Try Again
             </button>

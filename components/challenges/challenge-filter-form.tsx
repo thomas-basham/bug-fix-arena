@@ -186,7 +186,7 @@ export function ChallengeFilterForm({
         <div className="flex flex-wrap gap-3">
           <button
             type="submit"
-            className="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+            className="button-primary rounded-2xl"
           >
             Apply Filters
           </button>

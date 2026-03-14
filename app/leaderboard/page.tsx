@@ -38,7 +38,7 @@ export default async function LeaderboardPage() {
             action={
               <Link
                 href="/dashboard"
-                className="inline-flex items-center rounded-full border border-line bg-white/80 px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-white"
+                className="button-secondary"
               >
                 Open Dashboard
               </Link>
@@ -84,7 +84,7 @@ export default async function LeaderboardPage() {
                   action={
                     <Link
                       href="/challenges"
-                      className="inline-flex items-center rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+                      className="button-primary"
                     >
                       Browse Challenges
                     </Link>

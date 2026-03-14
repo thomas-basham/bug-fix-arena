@@ -14,7 +14,7 @@ export default function NotFound() {
           action={
             <Link
               href="/challenges"
-              className="inline-flex items-center rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+              className="button-primary"
             >
               Browse Challenges
             </Link>
