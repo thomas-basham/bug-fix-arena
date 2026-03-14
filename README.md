@@ -144,8 +144,42 @@ To run the ingestion workflow manually, sign in and open
 - `npm run dev` starts the app locally
 - `npm run lint` runs ESLint across the workspace
 - `npm run build` creates a production build using Webpack
+- `npm run test` runs the Vitest suite once
+- `npm run test:watch` runs the Vitest suite in watch mode
 - `npm run db:generate` generates the Prisma client
 - `npm run db:seed` loads the seeded MVP catalog into the database
+
+## Testing Strategy
+
+The test suite is intentionally focused on the logic that can break product
+behavior fastest:
+
+- GitHub normalization coverage verifies that live GitHub issue and repository
+  payloads are converted into stable internal challenge records with sane
+  fallbacks
+- Catalog URL helper coverage verifies that search, filter, sort, and
+  pagination state remain shareable and predictable
+- Scoring coverage verifies point breakdowns, rank thresholds, and score
+  summaries without needing a database round-trip
+- Submission and engagement flow coverage verifies the first server-side
+  workflows that mutate user progress and score state
+
+Run the tests with:
+
+```bash
+npm run test
+```
+
+What is still intentionally untested:
+
+- Most presentational components are not snapshot-tested because their risk is
+  lower than the data-shaping and persistence rules
+- Full route rendering is not covered yet because the current risk is higher in
+  the server-side service layer than in JSX composition
+- Prisma-backed integration against a real database is not wired yet; the
+  service tests currently mock Prisma so they stay fast and deterministic
+- GitHub client networking behavior is not fully integration-tested because it
+  depends on external API availability and rate limits
 
 ## GitHub Integration
 
