@@ -18,6 +18,11 @@ import {
 } from "@/lib/data/mock-data";
 import { DEFAULT_GITHUB_LABELS } from "@/lib/github/constants";
 import { fetchGitHubChallenges } from "@/lib/github/service";
+import {
+  getPersistedGitHubChallengeBySlug,
+  getPersistedGitHubChallenges,
+  getPersistedRelatedGitHubChallenges,
+} from "@/lib/sync/service";
 import type {
   ChallengeDetailSnapshot,
   ChallengeCatalogFilters,
@@ -284,13 +289,21 @@ export async function getChallengeCatalog({
   sort = CHALLENGE_CATALOG_DEFAULT_SORT,
 }: GetChallengeCatalogOptions = {}): Promise<ChallengeCatalogResult> {
   const fetchLimit = Math.max(limit ?? 0, mockChallenges.length, page * pageSize, 24);
-  const githubResult = await fetchGitHubChallenges({
-    labels: DEFAULT_GITHUB_LABELS,
-    limit: fetchLimit,
-  });
+  const persistedChallenges = await getPersistedGitHubChallenges();
+  const githubResult =
+    persistedChallenges.length === 0
+      ? await fetchGitHubChallenges({
+          labels: DEFAULT_GITHUB_LABELS,
+          limit: fetchLimit,
+        })
+      : null;
 
   const baseChallenges = (
-    githubResult.challenges.length > 0 ? githubResult.challenges : mockChallenges
+    persistedChallenges.length > 0
+      ? persistedChallenges
+      : githubResult && githubResult.challenges.length > 0
+        ? githubResult.challenges
+        : mockChallenges
   ).map(normalizeChallengeRecord);
   const query = normalizeTextValue(filters.query);
   const difficultyFilter = normalizeSelectValue(filters.difficulty);
@@ -315,7 +328,11 @@ export async function getChallengeCatalog({
     : paginatedChallenges.challenges;
 
   return {
-    source: githubResult.challenges.length > 0 ? "github" : "mock",
+    source:
+      persistedChallenges.length > 0 ||
+      (githubResult ? githubResult.challenges.length > 0 : false)
+        ? "github"
+        : "mock",
     discoveryLabels: DEFAULT_GITHUB_LABELS,
     challenges,
     totalChallenges: baseChallenges.length,
@@ -324,7 +341,10 @@ export async function getChallengeCatalog({
     sort: normalizedSort,
     filterOptions,
     pagination: paginatedChallenges.pagination,
-    notice: buildNotice(githubResult.status, githubResult.message),
+    notice:
+      persistedChallenges.length > 0 || !githubResult
+        ? undefined
+        : buildNotice(githubResult.status, githubResult.message),
   };
 }
 
@@ -348,6 +368,21 @@ export async function getChallengeDetailSnapshot(
   slug: string,
   relatedLimit = 3,
 ): Promise<ChallengeDetailSnapshot | null> {
+  const persistedChallenge = await getPersistedGitHubChallengeBySlug(slug);
+
+  if (persistedChallenge) {
+    const relatedChallenges = await getPersistedRelatedGitHubChallenges(
+      persistedChallenge.repositoryId,
+      persistedChallenge.id,
+      relatedLimit,
+    );
+
+    return {
+      challenge: persistedChallenge,
+      relatedChallenges,
+    };
+  }
+
   const lookupLimit = CHALLENGE_CATALOG_PAGE_SIZE * 8;
   const liveCatalog = await getChallengeCatalog({
     limit: lookupLimit,

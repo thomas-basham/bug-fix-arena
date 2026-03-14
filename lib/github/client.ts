@@ -129,10 +129,24 @@ async function requestGitHub<T>(
 
 export async function searchGitHubIssues(
   query: string,
-  perPage: number,
+  options: {
+    perPage: number;
+    page?: number;
+  },
 ) {
+  const searchParams = new URLSearchParams({
+    order: "desc",
+    per_page: String(options.perPage),
+    q: query,
+    sort: "updated",
+  });
+
+  if (options.page && options.page > 1) {
+    searchParams.set("page", String(options.page));
+  }
+
   return requestGitHub<GitHubSearchResponse>(
-    `/search/issues?q=${encodeURIComponent(query)}&sort=updated&order=desc&per_page=${perPage}`,
+    `/search/issues?${searchParams.toString()}`,
   );
 }
 

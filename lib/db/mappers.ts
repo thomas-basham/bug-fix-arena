@@ -111,6 +111,7 @@ export function mapRepositoryModelToRecord(
 ): RepositoryRecord {
   return {
     id: repository.id,
+    githubRepositoryId: repository.githubRepositoryId ?? undefined,
     owner: repository.owner,
     name: repository.name,
     fullName: repository.fullName,
@@ -131,12 +132,14 @@ export function mapChallengeModelToRecord(
 
   return normalizeChallengeRecord({
     id: challenge.id,
+    githubNodeId: challenge.githubNodeId ?? undefined,
+    githubIssueId: challenge.githubIssueId ?? undefined,
     slug: challenge.slug,
     title: challenge.title,
     summary: challenge.summary,
     body: challenge.body,
-    openedAt: challenge.createdAt.toISOString(),
-    updatedAt: challenge.updatedAt.toISOString(),
+    openedAt: (challenge.sourceCreatedAt ?? challenge.createdAt).toISOString(),
+    updatedAt: (challenge.sourceUpdatedAt ?? challenge.updatedAt).toISOString(),
     difficulty,
     status: toDomainChallengeStatus(challenge.status),
     source: toDomainChallengeSource(challenge.source),
@@ -148,6 +151,8 @@ export function mapChallengeModelToRecord(
     issueUrl: challenge.issueUrl,
     estimatedMinutes: challenge.estimatedMinutes,
     points: challenge.points,
+    lastSyncedAt: challenge.lastSyncedAt?.toISOString(),
+    inactiveReason: challenge.inactiveReason ?? undefined,
     acceptanceCriteria: [...challenge.acceptanceCriteria],
     workflowSteps: [...challenge.workflowSteps],
     learningOutcomes: [...challenge.learningOutcomes],

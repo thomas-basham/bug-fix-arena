@@ -35,37 +35,48 @@ enum ChallengeCompletionMethod {
   AUTOMATED
 }
 
+enum ChallengeSyncRunStatus {
+  RUNNING
+  SUCCESS
+  PARTIAL
+  FAILED
+}
+
 model User {
-  id                  String               @id @default(cuid())
-  name                String
-  email               String               @unique
-  githubUsername      String               @unique
-  bio                 String?
-  avatarInitials      String?
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  submissions         Submission[]
-  score               Score?
+  id                   String               @id @default(cuid())
+  name                 String
+  email                String               @unique
+  githubUsername       String               @unique
+  bio                  String?
+  avatarInitials       String?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  submissions          Submission[]
+  score                Score?
   challengeEngagements ChallengeEngagement[]
+  challengeSyncRuns    ChallengeSyncRun[]
 }
 
 model Repository {
-  id          String      @id @default(cuid())
-  owner       String
-  name        String
-  fullName    String      @unique
-  description String?
-  language    String?
-  stars       Int         @default(0)
-  openIssues  Int         @default(0)
-  url         String
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  challenges  Challenge[]
+  id               String      @id @default(cuid())
+  githubRepositoryId Int?      @unique
+  owner            String
+  name             String
+  fullName         String      @unique
+  description      String?
+  language         String?
+  stars            Int         @default(0)
+  openIssues       Int         @default(0)
+  url              String
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  challenges       Challenge[]
 }
 
 model Challenge {
   id                 String          @id @default(cuid())
+  githubNodeId       String?         @unique
+  githubIssueId      Int?            @unique
   slug               String          @unique
   title              String
   summary            String
@@ -73,6 +84,10 @@ model Challenge {
   difficulty         String
   status             ChallengeStatus @default(OPEN)
   source             ChallengeSource @default(MOCK)
+  sourceCreatedAt    DateTime?
+  sourceUpdatedAt    DateTime?
+  lastSyncedAt       DateTime?
+  inactiveReason     String?
   labels             String[]
   techStack          String[]
   issueNumber        Int
@@ -88,6 +103,10 @@ model Challenge {
   engagements        ChallengeEngagement[]
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
+
+  @@unique([repositoryId, issueNumber])
+  @@index([source, status])
+  @@index([source, lastSyncedAt])
 }
 
 model Submission {
@@ -136,4 +155,25 @@ model ChallengeEngagement {
   @@index([userId, status])
   @@index([challengeId])
   @@index([status, completedAt])
+}
+
+model ChallengeSyncRun {
+  id                String                 @id @default(cuid())
+  source            String                 @default("github")
+  status            ChallengeSyncRunStatus @default(RUNNING)
+  fetchedCount      Int                    @default(0)
+  importedCount     Int                    @default(0)
+  updatedCount      Int                    @default(0)
+  skippedCount      Int                    @default(0)
+  archivedCount     Int                    @default(0)
+  activeCount       Int                    @default(0)
+  message           String?
+  logs              String[]               @default([])
+  startedAt         DateTime               @default(now())
+  completedAt       DateTime?
+  triggeredByUserId String?
+  triggeredByUser   User?                  @relation(fields: [triggeredByUserId], references: [id], onDelete: SetNull)
+
+  @@index([status, startedAt])
+  @@index([startedAt])
 }

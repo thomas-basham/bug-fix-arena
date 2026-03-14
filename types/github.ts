@@ -27,6 +27,7 @@ export type GitHubIssueSearchItem = {
   node_id: string;
   number: number;
   title: string;
+  state: "open" | "closed";
   body: string | null;
   html_url: string;
   comments: number;
@@ -68,6 +69,8 @@ export type GitHubChallengeFetchResult = {
   challenges: ChallengeRecord[];
   status: GitHubChallengeFetchStatus;
   message?: string;
+  fetchedCount?: number;
+  isTruncated?: boolean;
 };
 
 export type GitHubApiErrorType =

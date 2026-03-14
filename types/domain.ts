@@ -2,6 +2,7 @@ import type {
   ChallengeCompletionMethod as PrismaChallengeCompletionMethod,
   ChallengeEngagementStatus as PrismaChallengeEngagementStatus,
   ChallengeSource as PrismaChallengeSource,
+  ChallengeSyncRunStatus as PrismaChallengeSyncRunStatus,
   ChallengeStatus as PrismaChallengeStatus,
   SubmissionStatus as PrismaSubmissionStatus,
 } from "@prisma/client";
@@ -20,10 +21,13 @@ export type ChallengeEngagementStatus =
   LowercaseEnum<PrismaChallengeEngagementStatus>;
 export type ChallengeCompletionMethod =
   LowercaseEnum<PrismaChallengeCompletionMethod>;
+export type ChallengeSyncRunStatus =
+  LowercaseEnum<PrismaChallengeSyncRunStatus>;
 export type ChallengeCatalogNoticeTone = "muted" | "warning";
 
 export type RepositoryRecord = {
   id: string;
+  githubRepositoryId?: number;
   owner: string;
   name: string;
   fullName: string;
@@ -43,6 +47,8 @@ export type ChallengeActivity = {
 
 export type ChallengeRecord = {
   id: string;
+  githubNodeId?: string;
+  githubIssueId?: number;
   slug: string;
   title: string;
   summary: string;
@@ -60,6 +66,8 @@ export type ChallengeRecord = {
   issueUrl: string;
   estimatedMinutes: number;
   points: number;
+  lastSyncedAt?: string;
+  inactiveReason?: string;
   acceptanceCriteria: string[];
   workflowSteps: string[];
   learningOutcomes: string[];
@@ -145,6 +153,31 @@ export type LeaderboardActivityRecord = {
 export type LeaderboardSnapshot = {
   entries: LeaderboardEntryRecord[];
   recentActivity: LeaderboardActivityRecord[];
+};
+
+export type ChallengeSyncRunRecord = {
+  id: string;
+  source: string;
+  status: ChallengeSyncRunStatus;
+  fetchedCount: number;
+  importedCount: number;
+  updatedCount: number;
+  skippedCount: number;
+  archivedCount: number;
+  activeCount: number;
+  message?: string;
+  logs: string[];
+  startedAt: string;
+  completedAt?: string;
+  triggeredByUser?: PublicUserRecord;
+};
+
+export type ChallengeSyncOverviewRecord = {
+  lastRun: ChallengeSyncRunRecord | null;
+  recentRuns: ChallengeSyncRunRecord[];
+  totalSyncedChallenges: number;
+  activeSyncedChallenges: number;
+  archivedSyncedChallenges: number;
 };
 
 export type UserDashboardSnapshot = {

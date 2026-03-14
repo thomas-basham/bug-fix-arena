@@ -37,6 +37,7 @@ export function normalizeGitHubRepository(
 ): RepositoryRecord {
   return {
     id: `github-repo-${repository.id}`,
+    githubRepositoryId: repository.id,
     owner: repository.owner.login,
     name: repository.name,
     fullName: repository.full_name,
@@ -64,6 +65,8 @@ export function normalizeGitHubIssueToChallenge(
 
   return {
     id: `github-challenge-${issue.id}`,
+    githubNodeId: issue.node_id,
+    githubIssueId: issue.id,
     slug: slugify(`${repository.name}-${issue.number}-${issue.title}`),
     title: issue.title.trim(),
     summary: extractChallengeSummary(issue.body, summaryFallback),

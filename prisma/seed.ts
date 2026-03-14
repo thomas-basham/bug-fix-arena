@@ -35,6 +35,7 @@ async function main() {
   await prisma.submission.deleteMany();
   await prisma.challengeEngagement.deleteMany();
   await prisma.challenge.deleteMany();
+  await prisma.challengeSyncRun.deleteMany();
   await prisma.score.deleteMany();
   await prisma.repository.deleteMany();
   await prisma.user.deleteMany();
@@ -56,6 +57,7 @@ async function main() {
     await prisma.repository.create({
       data: {
         id: repository.id,
+        githubRepositoryId: repository.githubRepositoryId,
         owner: repository.owner,
         name: repository.name,
         fullName: repository.fullName,
@@ -72,6 +74,8 @@ async function main() {
     await prisma.challenge.create({
       data: {
         id: challenge.id,
+        githubNodeId: challenge.githubNodeId,
+        githubIssueId: challenge.githubIssueId,
         slug: challenge.slug,
         title: challenge.title,
         summary: challenge.summary,
@@ -79,6 +83,12 @@ async function main() {
         difficulty: challenge.difficulty,
         status: toPrismaChallengeStatus(challenge.status),
         source: toPrismaChallengeSource("mock"),
+        sourceCreatedAt: new Date(challenge.openedAt),
+        sourceUpdatedAt: new Date(challenge.updatedAt),
+        lastSyncedAt: challenge.lastSyncedAt
+          ? new Date(challenge.lastSyncedAt)
+          : undefined,
+        inactiveReason: challenge.inactiveReason,
         labels: challenge.labels,
         techStack: challenge.techStack,
         issueNumber: challenge.issueNumber,

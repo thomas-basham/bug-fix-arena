@@ -154,6 +154,7 @@ async function ensureChallengeSnapshot(challenge: ChallengeRecord) {
       id: challenge.repository.id,
     },
     update: {
+      githubRepositoryId: challenge.repository.githubRepositoryId,
       owner: challenge.repository.owner,
       name: challenge.repository.name,
       fullName: challenge.repository.fullName,
@@ -165,6 +166,7 @@ async function ensureChallengeSnapshot(challenge: ChallengeRecord) {
     },
     create: {
       id: challenge.repository.id,
+      githubRepositoryId: challenge.repository.githubRepositoryId,
       owner: challenge.repository.owner,
       name: challenge.repository.name,
       fullName: challenge.repository.fullName,
@@ -181,6 +183,8 @@ async function ensureChallengeSnapshot(challenge: ChallengeRecord) {
       id: challenge.id,
     },
     update: {
+      githubNodeId: challenge.githubNodeId,
+      githubIssueId: challenge.githubIssueId,
       slug: challenge.slug,
       title: challenge.title,
       summary: challenge.summary,
@@ -188,6 +192,12 @@ async function ensureChallengeSnapshot(challenge: ChallengeRecord) {
       difficulty: challenge.difficulty,
       status: toPrismaChallengeStatus(challenge.status),
       source: toPrismaChallengeSource(challenge.source),
+      sourceCreatedAt: new Date(challenge.openedAt),
+      sourceUpdatedAt: new Date(challenge.updatedAt),
+      lastSyncedAt: challenge.lastSyncedAt
+        ? new Date(challenge.lastSyncedAt)
+        : undefined,
+      inactiveReason: challenge.inactiveReason ?? null,
       labels: challenge.labels,
       techStack: challenge.techStack,
       issueNumber: challenge.issueNumber,
@@ -201,6 +211,8 @@ async function ensureChallengeSnapshot(challenge: ChallengeRecord) {
     },
     create: {
       id: challenge.id,
+      githubNodeId: challenge.githubNodeId,
+      githubIssueId: challenge.githubIssueId,
       slug: challenge.slug,
       title: challenge.title,
       summary: challenge.summary,
@@ -208,6 +220,12 @@ async function ensureChallengeSnapshot(challenge: ChallengeRecord) {
       difficulty: challenge.difficulty,
       status: toPrismaChallengeStatus(challenge.status),
       source: toPrismaChallengeSource(challenge.source),
+      sourceCreatedAt: new Date(challenge.openedAt),
+      sourceUpdatedAt: new Date(challenge.updatedAt),
+      lastSyncedAt: challenge.lastSyncedAt
+        ? new Date(challenge.lastSyncedAt)
+        : undefined,
+      inactiveReason: challenge.inactiveReason ?? null,
       labels: challenge.labels,
       techStack: challenge.techStack,
       issueNumber: challenge.issueNumber,

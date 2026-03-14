@@ -22,6 +22,16 @@ import type {
 type FetchGitHubChallengesOptions = {
   labels?: readonly string[];
   limit: number;
+  perPage?: number;
+  maxPages?: number;
+};
+
+type FetchIssueDiscoveryResult = {
+  issues: GitHubIssueSearchItem[];
+  status: GitHubChallengeFetchStatus;
+  message?: string;
+  fetchedCount: number;
+  isTruncated: boolean;
 };
 
 function getRepositoryFullNameFromIssue(issue: GitHubIssueSearchItem) {
@@ -39,32 +49,78 @@ function toChallengeStatus(type: GitHubApiErrorType): GitHubChallengeFetchStatus
   }
 }
 
-async function fetchIssuesByLabels(labels: readonly string[], perLabel: number) {
+async function fetchIssuesByLabels(
+  labels: readonly string[],
+  options: {
+    perPage: number;
+    maxPages: number;
+    limit: number;
+  },
+): Promise<FetchIssueDiscoveryResult> {
   const issues = new Map<string, GitHubIssueSearchItem>();
   const messages: string[] = [];
-  let status: GitHubChallengeFetchResult["status"] = "ok";
+  let status: GitHubChallengeFetchStatus = "ok";
+  let fetchedCount = 0;
+  let isTruncated = false;
 
   for (const label of labels) {
-    const result = await searchGitHubIssues(
-      `label:"${label}" is:issue is:open archived:false no:assignee`,
-      perLabel,
-    );
+    for (let page = 1; page <= options.maxPages; page += 1) {
+      if (issues.size >= options.limit) {
+        isTruncated = true;
+        break;
+      }
 
-    if (!result.ok) {
-      status = toChallengeStatus(result.error.type);
-      messages.push(result.error.message);
-      continue;
-    }
+      const result = await searchGitHubIssues(
+        `label:"${label}" is:issue is:open archived:false no:assignee`,
+        {
+          perPage: options.perPage,
+          page,
+        },
+      );
 
-    for (const issue of filterIssueResultsToIssues(result.data.items)) {
-      issues.set(issue.node_id, issue);
+      if (!result.ok) {
+        status = toChallengeStatus(result.error.type);
+        messages.push(result.error.message);
+        break;
+      }
+
+      const pageIssues = filterIssueResultsToIssues(result.data.items);
+
+      if (pageIssues.length === 0) {
+        break;
+      }
+
+      fetchedCount += pageIssues.length;
+
+      for (const issue of pageIssues) {
+        issues.set(issue.node_id, issue);
+
+        if (issues.size >= options.limit) {
+          isTruncated = true;
+          break;
+        }
+      }
+
+      if (issues.size >= options.limit) {
+        break;
+      }
+
+      if (pageIssues.length < options.perPage) {
+        break;
+      }
+
+      if (page === options.maxPages) {
+        isTruncated = true;
+      }
     }
   }
 
   return {
-    issues: Array.from(issues.values()),
+    issues: Array.from(issues.values()).slice(0, options.limit),
     status,
     message: messages[0],
+    fetchedCount,
+    isTruncated,
   };
 }
 
@@ -72,9 +128,7 @@ async function fetchRepositoriesForIssues(issues: GitHubIssueSearchItem[]) {
   return fetchGitHubRepositories(issues.map(getRepositoryFullNameFromIssue));
 }
 
-export async function fetchGitHubRepositories(
-  fullNames: string[],
-) {
+export async function fetchGitHubRepositories(fullNames: string[]) {
   const repositories: Array<{ fullName: string; repository: RepositoryRecord }> =
     [];
   let status: GitHubChallengeFetchResult["status"] = "ok";
@@ -134,15 +188,23 @@ function mapRepositoriesByFullName(
 export async function fetchGitHubChallenges({
   labels = DEFAULT_GITHUB_LABELS,
   limit,
+  perPage,
+  maxPages = 1,
 }: FetchGitHubChallengesOptions): Promise<GitHubChallengeFetchResult> {
-  const perLabel = Math.max(
-    1,
-    Math.min(
-      GITHUB_DEFAULT_RESULTS_PER_LABEL,
-      Math.ceil(limit / labels.length),
-    ),
-  );
-  const issueResult = await fetchIssuesByLabels(labels, perLabel);
+  const resolvedPerPage =
+    perPage ??
+    Math.max(
+      1,
+      Math.min(
+        GITHUB_DEFAULT_RESULTS_PER_LABEL,
+        Math.ceil(limit / labels.length),
+      ),
+    );
+  const issueResult = await fetchIssuesByLabels(labels, {
+    perPage: resolvedPerPage,
+    maxPages,
+    limit,
+  });
 
   if (issueResult.status === "unconfigured") {
     return {
@@ -151,6 +213,8 @@ export async function fetchGitHubChallenges({
       message:
         issueResult.message ??
         "GitHub is not configured, so the app is using seeded sample issues.",
+      fetchedCount: issueResult.fetchedCount,
+      isTruncated: issueResult.isTruncated,
     };
   }
 
@@ -159,11 +223,12 @@ export async function fetchGitHubChallenges({
   if (issues.length === 0) {
     return {
       challenges: [],
-      status:
-        issueResult.status === "ok" ? "error" : issueResult.status,
+      status: issueResult.status === "ok" ? "error" : issueResult.status,
       message:
         issueResult.message ??
         "GitHub did not return any usable beginner-friendly issues for the current query.",
+      fetchedCount: issueResult.fetchedCount,
+      isTruncated: issueResult.isTruncated,
     };
   }
 
@@ -186,6 +251,8 @@ export async function fetchGitHubChallenges({
         repositoryResult.message ??
         issueResult.message ??
         "GitHub returned issues, but repository enrichment failed before the challenges could be shown.",
+      fetchedCount: issueResult.fetchedCount,
+      isTruncated: issueResult.isTruncated,
     };
   }
 
@@ -194,6 +261,8 @@ export async function fetchGitHubChallenges({
       challenges,
       status: issueResult.status,
       message: issueResult.message,
+      fetchedCount: issueResult.fetchedCount,
+      isTruncated: issueResult.isTruncated,
     };
   }
 
@@ -202,11 +271,15 @@ export async function fetchGitHubChallenges({
       challenges,
       status: repositoryResult.status,
       message: repositoryResult.message,
+      fetchedCount: issueResult.fetchedCount,
+      isTruncated: issueResult.isTruncated,
     };
   }
 
   return {
     challenges,
     status: "ok",
+    fetchedCount: issueResult.fetchedCount,
+    isTruncated: issueResult.isTruncated,
   };
 }

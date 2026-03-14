@@ -1,6 +1,7 @@
 import type {
   Challenge,
   ChallengeEngagement,
+  ChallengeSyncRun,
   Prisma,
   Repository,
   Score,
@@ -14,6 +15,7 @@ export type ChallengeModel = Challenge;
 export type SubmissionModel = Submission;
 export type ScoreModel = Score;
 export type ChallengeEngagementModel = ChallengeEngagement;
+export type ChallengeSyncRunModel = ChallengeSyncRun;
 
 export type ChallengeWithRepositoryModel = Prisma.ChallengeGetPayload<{
   include: {
@@ -37,3 +39,16 @@ export type ChallengeEngagementWithChallengeModel =
       };
     };
   }>;
+
+export type ChallengeSyncRunWithUserModel = Prisma.ChallengeSyncRunGetPayload<{
+  include: {
+    triggeredByUser: {
+      select: {
+        id: true;
+        name: true;
+        githubUsername: true;
+        avatarInitials: true;
+      };
+    };
+  };
+}>;
