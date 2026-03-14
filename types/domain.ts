@@ -66,6 +66,11 @@ export type ChallengeRecord = {
   recentActivity: ChallengeActivity[];
 };
 
+export type ChallengeDetailSnapshot = {
+  challenge: ChallengeRecord;
+  relatedChallenges: ChallengeRecord[];
+};
+
 export type UserRecord = {
   id: string;
   name: string;

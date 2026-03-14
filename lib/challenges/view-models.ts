@@ -28,6 +28,13 @@ export type ChallengeViewModel = {
   totalPointsLabel: string;
 };
 
+export type ChallengeDetailViewModel = ChallengeViewModel & {
+  approachGuidance: string;
+  approachSteps: string[];
+  beforeStartChecklist: string[];
+  skillTags: string[];
+};
+
 export type SubmissionViewModel = {
   statusLabel: string;
   statusTone: "muted" | "accent" | "success" | "warning";
@@ -61,6 +68,43 @@ export function buildChallengeViewModel(
     completionPointsLabel: `${points.completionPoints} pts`,
     scoreTierLabel: points.scoreTierLabel,
     totalPointsLabel: `${points.totalPoints} pts`,
+  };
+}
+
+export function buildChallengeDetailViewModel(
+  challenge: ChallengeRecord,
+): ChallengeDetailViewModel {
+  const baseViewModel = buildChallengeViewModel(challenge);
+  const skillTags = Array.from(
+    new Set(
+      [challenge.repository.language, ...challenge.techStack].filter(
+        (value) => value.trim().length > 0,
+      ),
+    ),
+  );
+  const approachSteps =
+    challenge.workflowSteps.length > 0
+      ? challenge.workflowSteps
+      : [
+          "Reproduce or understand the reported issue before editing any code.",
+          "Inspect the most likely files, tests, or docs surfaces in the repository.",
+          "Write down the validation path before converting the plan into a patch.",
+        ];
+  const firstAcceptanceCriteria = challenge.acceptanceCriteria[0];
+
+  return {
+    ...baseViewModel,
+    skillTags,
+    approachGuidance: `Treat this as a ${baseViewModel.difficultyLabel.toLowerCase()} issue with a ${baseViewModel.scoreTierLabel.toLowerCase()} reward profile. Keep the first pass narrow, locate the exact code or docs surface involved, and define how the fix should be validated before implementation starts.`,
+    approachSteps,
+    beforeStartChecklist: [
+      "Read the full issue thread and capture the exact user-facing problem.",
+      `Inspect ${challenge.repository.fullName} for nearby patterns, tests, and contribution conventions.`,
+      firstAcceptanceCriteria
+        ? `Write down the first success condition: ${firstAcceptanceCriteria}`
+        : "Decide what result will prove the fix is correct before you touch code.",
+      "List any open questions, risky edge cases, or missing context before starting implementation.",
+    ],
   };
 }
 

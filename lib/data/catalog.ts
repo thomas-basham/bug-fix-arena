@@ -1,4 +1,7 @@
 import {
+  normalizeChallengeRecord,
+} from "@/lib/challenges/normalize";
+import {
   CHALLENGE_CATALOG_DEFAULT_SORT,
   CHALLENGE_CATALOG_PAGE_SIZE,
   CHALLENGE_DIFFICULTIES,
@@ -16,6 +19,7 @@ import {
 import { DEFAULT_GITHUB_LABELS } from "@/lib/github/constants";
 import { fetchGitHubChallenges } from "@/lib/github/service";
 import type {
+  ChallengeDetailSnapshot,
   ChallengeCatalogFilters,
   ChallengeCatalogNotice,
   ChallengeCatalogResult,
@@ -285,8 +289,9 @@ export async function getChallengeCatalog({
     limit: fetchLimit,
   });
 
-  const baseChallenges =
-    githubResult.challenges.length > 0 ? githubResult.challenges : mockChallenges;
+  const baseChallenges = (
+    githubResult.challenges.length > 0 ? githubResult.challenges : mockChallenges
+  ).map(normalizeChallengeRecord);
   const query = normalizeTextValue(filters.query);
   const difficultyFilter = normalizeSelectValue(filters.difficulty);
   const statusFilter = normalizeSelectValue(filters.status);
@@ -334,20 +339,60 @@ export async function getRecommendedChallenges(limit = 2) {
 export async function getChallengeBySlug(
   slug: string,
 ): Promise<ChallengeRecord | null> {
+  const detailSnapshot = await getChallengeDetailSnapshot(slug);
+
+  return detailSnapshot?.challenge ?? null;
+}
+
+export async function getChallengeDetailSnapshot(
+  slug: string,
+  relatedLimit = 3,
+): Promise<ChallengeDetailSnapshot | null> {
   const lookupLimit = CHALLENGE_CATALOG_PAGE_SIZE * 8;
   const liveCatalog = await getChallengeCatalog({
     limit: lookupLimit,
     pageSize: lookupLimit,
   });
-  const liveMatch = liveCatalog.challenges.find(
-    (challenge) => challenge.slug === slug,
-  );
+  const liveMatch = liveCatalog.challenges.find((challenge) => challenge.slug === slug);
 
   if (liveMatch) {
-    return liveMatch;
+    const relatedChallenges = liveCatalog.challenges
+      .filter(
+        (challenge) =>
+          challenge.slug !== liveMatch.slug &&
+          challenge.repository.fullName === liveMatch.repository.fullName,
+      )
+      .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+      .slice(0, relatedLimit);
+
+    return {
+      challenge: liveMatch,
+      relatedChallenges,
+    };
   }
 
-  return mockChallenges.find((challenge) => challenge.slug === slug) ?? null;
+  const fallbackChallenge = mockChallenges
+    .map(normalizeChallengeRecord)
+    .find((challenge) => challenge.slug === slug);
+
+  if (!fallbackChallenge) {
+    return null;
+  }
+
+  const relatedChallenges = mockChallenges
+    .map(normalizeChallengeRecord)
+    .filter(
+      (challenge) =>
+        challenge.slug !== fallbackChallenge.slug &&
+        challenge.repository.fullName === fallbackChallenge.repository.fullName,
+    )
+    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+    .slice(0, relatedLimit);
+
+  return {
+    challenge: fallbackChallenge,
+    relatedChallenges,
+  };
 }
 
 export function getPlatformOverview() {

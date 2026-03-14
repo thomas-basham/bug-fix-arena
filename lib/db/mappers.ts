@@ -5,6 +5,7 @@ import {
   ChallengeStatus as PrismaChallengeStatus,
   SubmissionStatus as PrismaSubmissionStatus,
 } from "@prisma/client";
+import { normalizeChallengeRecord } from "@/lib/challenges/normalize";
 import { isChallengeDifficulty, normalizeChallengeLanguage } from "@/lib/config/challenges";
 import type {
   ChallengeCompletionMethod,
@@ -128,7 +129,7 @@ export function mapChallengeModelToRecord(
     ? challenge.difficulty
     : "beginner";
 
-  return {
+  return normalizeChallengeRecord({
     id: challenge.id,
     slug: challenge.slug,
     title: challenge.title,
@@ -151,5 +152,5 @@ export function mapChallengeModelToRecord(
     workflowSteps: [...challenge.workflowSteps],
     learningOutcomes: [...challenge.learningOutcomes],
     recentActivity: [],
-  };
+  });
 }
