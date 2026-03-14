@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ChallengeStatus {
+  OPEN
+  REVIEW
+  ARCHIVED
+}
+
+enum ChallengeSource {
+  GITHUB
+  MOCK
+}
+
+enum SubmissionStatus {
+  DRAFT
+  SUBMITTED
+  ACCEPTED
+  REJECTED
+}
+
+model User {
+  id             String       @id @default(cuid())
+  name           String
+  email          String       @unique
+  githubUsername String       @unique
+  bio            String?
+  avatarInitials String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  submissions    Submission[]
+  score          Score?
+}
+
+model Repository {
+  id          String      @id @default(cuid())
+  owner       String
+  name        String
+  fullName    String      @unique
+  description String?
+  language    String?
+  stars       Int         @default(0)
+  openIssues  Int         @default(0)
+  url         String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  challenges  Challenge[]
+}
+
+model Challenge {
+  id                 String          @id @default(cuid())
+  slug               String          @unique
+  title              String
+  summary            String
+  body               String
+  difficulty         String
+  status             ChallengeStatus @default(OPEN)
+  source             ChallengeSource @default(MOCK)
+  labels             String[]
+  techStack          String[]
+  issueNumber        Int
+  issueUrl           String
+  estimatedMinutes   Int
+  points             Int             @default(0)
+  acceptanceCriteria String[]
+  workflowSteps      String[]
+  learningOutcomes   String[]
+  repositoryId       String
+  repository         Repository      @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  submissions        Submission[]
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+}
+
+model Submission {
+  id          String           @id @default(cuid())
+  title       String
+  summary     String
+  checklist   String[]
+  status      SubmissionStatus @default(DRAFT)
+  challengeId String
+  challenge   Challenge        @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model Score {
+  id                  String   @id @default(cuid())
+  totalPoints         Int      @default(0)
+  currentStreak       Int      @default(0)
+  completedChallenges Int      @default(0)
+  rankLabel           String
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt           DateTime @updatedAt
+}
