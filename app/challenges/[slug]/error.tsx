@@ -17,7 +17,7 @@ export default function ChallengeDetailError({
       reset={reset}
       eyebrow="Challenge Error"
       title="This challenge could not be rendered."
-      description="The issue brief or supporting challenge metadata failed to load. Retry the request or return to the catalog to choose another issue."
+      description="The issue brief, repository metadata, or related challenge context failed to load. Retry the request or return to the catalog to choose another issue."
       secondaryHref="/challenges"
       secondaryLabel="Back to Challenges"
     />

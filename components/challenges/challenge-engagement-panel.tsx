@@ -25,12 +25,14 @@ function EngagementActionButton({
   challengeSlug,
   label,
   redirectTo,
+  fullWidth = false,
   tone = "dark",
 }: {
   action: (formData: FormData) => Promise<void>;
   challengeSlug: string;
   label: string;
   redirectTo: string;
+  fullWidth?: boolean;
   tone?: "dark" | "light";
 }) {
   return (
@@ -41,8 +43,8 @@ function EngagementActionButton({
         type="submit"
         className={
           tone === "dark"
-            ? "inline-flex items-center rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-            : "inline-flex items-center rounded-full border border-line bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-white"
+            ? `inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 ${fullWidth ? "w-full" : ""}`
+            : `inline-flex items-center justify-center rounded-full border border-line bg-white/80 px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-white ${fullWidth ? "w-full" : ""}`
         }
       >
         {label}
@@ -76,6 +78,24 @@ export function ChallengeEngagementPanel({
           redirectTo={redirectTo}
           className="mt-6 inline-flex items-center rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
         />
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <a
+            href={challenge.issueUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center justify-center rounded-full border border-line bg-white/80 px-4 py-3 text-sm font-medium text-slate-900 transition hover:bg-white"
+          >
+            Visit GitHub Issue
+          </a>
+          <a
+            href={challenge.repository.url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center justify-center rounded-full border border-line bg-white/80 px-4 py-3 text-sm font-medium text-slate-900 transition hover:bg-white"
+          >
+            View Repository
+          </a>
+        </div>
       </section>
     );
   }
@@ -119,30 +139,52 @@ export function ChallengeEngagementPanel({
           </p>
         </div>
       </div>
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        <a
+          href={challenge.issueUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center justify-center rounded-full border border-line bg-white/80 px-4 py-3 text-sm font-medium text-slate-900 transition hover:bg-white"
+        >
+          Visit GitHub Issue
+        </a>
+        <a
+          href={challenge.repository.url}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center justify-center rounded-full border border-line bg-white/80 px-4 py-3 text-sm font-medium text-slate-900 transition hover:bg-white"
+        >
+          View Repository
+        </a>
+      </div>
       {engagement?.status === "completed" ? (
         <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 text-sm leading-7 text-emerald-800">
           You already completed this challenge manually and earned{" "}
           <span className="font-semibold">{engagement.pointsAwarded} points</span>.
         </div>
       ) : null}
-      <div className="mt-6 flex flex-wrap gap-3">
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
         {engagement?.status !== "saved" && engagement?.status !== "completed" ? (
           <EngagementActionButton
             action={saveChallengeAction}
             challengeSlug={challenge.slug}
-            label="Save For Later"
+            label="Save Challenge"
             redirectTo={redirectTo}
             tone="light"
+            fullWidth
           />
         ) : null}
         {engagement?.status !== "started" && engagement?.status !== "completed" ? (
           <EngagementActionButton
             action={startChallengeAction}
             challengeSlug={challenge.slug}
-            label="Mark As Started"
+            label="Start Challenge"
             redirectTo={redirectTo}
+            fullWidth
           />
         ) : null}
+      </div>
+      <div className="mt-3">
         {engagement?.status !== "completed" ? (
           <EngagementActionButton
             action={completeChallengeAction}
@@ -150,6 +192,7 @@ export function ChallengeEngagementPanel({
             label={`Complete For ${viewModel.totalPointsLabel}`}
             redirectTo={redirectTo}
             tone="light"
+            fullWidth
           />
         ) : null}
       </div>
