@@ -22,11 +22,11 @@ type ChallengeEngagementPanelProps = {
 };
 
 const actionButtonBaseClass =
-  "inline-flex items-center justify-center rounded-full px-4 py-3 text-sm font-semibold appearance-none transition focus-visible:outline-none focus-visible:ring-2";
+  "inline-flex items-center justify-center";
 
-const primaryActionButtonClass = `${actionButtonBaseClass} bg-accent text-white shadow-[0_14px_32px_-20px_rgba(15,118,110,0.65)] hover:brightness-95 focus-visible:ring-accent/35`;
+const primaryActionButtonClass = `${actionButtonBaseClass} button-primary`;
 
-const secondaryActionButtonClass = `${actionButtonBaseClass} border border-slate-300 bg-white/95 text-slate-950 hover:bg-white focus-visible:ring-slate-900/10`;
+const secondaryActionButtonClass = `${actionButtonBaseClass} button-secondary`;
 
 function EngagementActionButton({
   action,
@@ -129,19 +129,19 @@ export function ChallengeEngagementPanel({
         MVP still uses lightweight contributor workflows.
       </p>
       <div className="mt-6 grid gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border border-line bg-white/75 p-4">
+        <div className="surface-panel p-4">
           <p className="mono-label">Reward</p>
           <p className="mt-2 font-medium text-slate-900">
             {viewModel.rewardPointsLabel}
           </p>
         </div>
-        <div className="rounded-2xl border border-line bg-white/75 p-4">
+        <div className="surface-panel p-4">
           <p className="mono-label">Completion bonus</p>
           <p className="mt-2 font-medium text-slate-900">
             {viewModel.completionPointsLabel}
           </p>
         </div>
-        <div className="rounded-2xl border border-line bg-white/75 p-4">
+        <div className="surface-panel p-4">
           <p className="mono-label">Total available</p>
           <p className="mt-2 font-medium text-slate-900">
             {viewModel.totalPointsLabel}

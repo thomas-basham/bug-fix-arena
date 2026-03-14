@@ -63,7 +63,7 @@ export function SubmissionForm({
             name="githubPrUrl"
             defaultValue={submission?.githubPrUrl}
             placeholder="https://github.com/owner/repo/pull/123"
-            className="w-full rounded-2xl border border-line bg-white/90 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-accent/35 focus:ring-2 focus:ring-accent/20"
+            className="ui-field"
           />
         </label>
         <label className="grid gap-2">
@@ -73,7 +73,7 @@ export function SubmissionForm({
             name="githubForkUrl"
             defaultValue={submission?.githubForkUrl}
             placeholder="https://github.com/your-handle/repo"
-            className="w-full rounded-2xl border border-line bg-white/90 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-accent/35 focus:ring-2 focus:ring-accent/20"
+            className="ui-field"
           />
         </label>
         <label className="grid gap-2">
@@ -83,7 +83,7 @@ export function SubmissionForm({
             rows={5}
             defaultValue={submission?.notes}
             placeholder="Capture context, test notes, or maintainer questions for this PR."
-            className="w-full rounded-[1.5rem] border border-line bg-white/90 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-accent/35 focus:ring-2 focus:ring-accent/20"
+            className="ui-textarea"
           />
         </label>
       </div>
