@@ -2,7 +2,7 @@
 
 **Live Demo:** [https://main.d3it84bzc6jetr.amplifyapp.com](https://main.d3it84bzc6jetr.amplifyapp.com)
 
-Open Source Bug Fix Arena is a developer-focused web app for discovering
+Bug Fix Arena is a developer-focused web app for discovering
 beginner-friendly open source issues, turning them into structured challenges,
 and building the workflow needed to ship a real fix. The current product stops
 short of full in-browser code execution on purpose. The MVP focuses on issue
