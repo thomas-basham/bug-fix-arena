@@ -20,30 +20,35 @@ export const metadata: Metadata = {
     "Internal GitHub challenge ingestion controls for Open Source Bug Fix Arena.",
 };
 
-const syncStatusMetadata = {
-  failed: {
-    label: "Failed",
-    tone: "warning",
-  },
-  partial: {
-    label: "Partial",
-    tone: "accent",
-  },
-  running: {
-    label: "Running",
-    tone: "accent",
-  },
-  success: {
-    label: "Success",
-    tone: "success",
-  },
-} as const satisfies Record<
-  ChallengeSyncRunRecord["status"],
-  {
-    label: string;
-    tone: "accent" | "success" | "warning";
+function getSyncStatusMetadata(status: ChallengeSyncRunRecord["status"]) {
+  switch (status) {
+    case "failed":
+      return {
+        label: "Failed",
+        tone: "warning" as const,
+      };
+    case "partial":
+      return {
+        label: "Partial",
+        tone: "accent" as const,
+      };
+    case "running":
+      return {
+        label: "Running",
+        tone: "accent" as const,
+      };
+    case "success":
+      return {
+        label: "Success",
+        tone: "success" as const,
+      };
+    default:
+      return {
+        label: "Unknown",
+        tone: "warning" as const,
+      };
   }
->;
+}
 
 function formatRunDate(date?: string) {
   if (!date) {
@@ -57,7 +62,7 @@ function formatRunDate(date?: string) {
 }
 
 function SyncRunSummary({ run }: { run: ChallengeSyncRunRecord }) {
-  const statusMetadata = syncStatusMetadata[run.status];
+  const statusMetadata = getSyncStatusMetadata(run.status);
 
   return (
     <div className="surface-card p-6">
@@ -178,6 +183,9 @@ export default async function AdminSyncPage() {
 
   const overview = await getChallengeSyncOverview();
   const lastRun = overview.lastRun;
+  const lastRunStatusMetadata = lastRun
+    ? getSyncStatusMetadata(lastRun.status)
+    : null;
 
   return (
     <AppShell>
@@ -187,9 +195,9 @@ export default async function AdminSyncPage() {
           <div className="flex flex-wrap items-center gap-3">
             <Badge tone="accent">Internal Admin</Badge>
             <Badge tone="muted">GitHub Ingestion</Badge>
-            {lastRun ? (
-              <Badge tone={syncStatusMetadata[lastRun.status].tone}>
-                {syncStatusMetadata[lastRun.status].label}
+            {lastRun && lastRunStatusMetadata ? (
+              <Badge tone={lastRunStatusMetadata.tone}>
+                {lastRunStatusMetadata.label}
               </Badge>
             ) : null}
           </div>
@@ -228,7 +236,7 @@ export default async function AdminSyncPage() {
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <p className="mono-label text-slate-400">Latest Result</p>
                     <p className="mt-2 text-base font-semibold text-white">
-                      {syncStatusMetadata[lastRun.status].label}
+                      {lastRunStatusMetadata?.label ?? "Unknown"}
                     </p>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -314,22 +322,26 @@ export default async function AdminSyncPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-line">
-                    {overview.recentRuns.map((run) => (
-                      <tr key={run.id}>
-                        <td className="px-5 py-4">
-                          <Badge tone={syncStatusMetadata[run.status].tone}>
-                            {syncStatusMetadata[run.status].label}
-                          </Badge>
-                        </td>
-                        <td className="px-5 py-4">
-                          {formatRunDate(run.startedAt)}
-                        </td>
-                        <td className="px-5 py-4">{run.importedCount}</td>
-                        <td className="px-5 py-4">{run.updatedCount}</td>
-                        <td className="px-5 py-4">{run.skippedCount}</td>
-                        <td className="px-5 py-4">{run.archivedCount}</td>
-                      </tr>
-                    ))}
+                    {overview.recentRuns.map((run) => {
+                      const statusMetadata = getSyncStatusMetadata(run.status);
+
+                      return (
+                        <tr key={run.id}>
+                          <td className="px-5 py-4">
+                            <Badge tone={statusMetadata.tone}>
+                              {statusMetadata.label}
+                            </Badge>
+                          </td>
+                          <td className="px-5 py-4">
+                            {formatRunDate(run.startedAt)}
+                          </td>
+                          <td className="px-5 py-4">{run.importedCount}</td>
+                          <td className="px-5 py-4">{run.updatedCount}</td>
+                          <td className="px-5 py-4">{run.skippedCount}</td>
+                          <td className="px-5 py-4">{run.archivedCount}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
