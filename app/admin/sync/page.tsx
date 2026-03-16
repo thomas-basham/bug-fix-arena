@@ -37,7 +37,13 @@ const syncStatusMetadata = {
     label: "Success",
     tone: "success",
   },
-} as const;
+} as const satisfies Record<
+  ChallengeSyncRunRecord["status"],
+  {
+    label: string;
+    tone: "accent" | "success" | "warning";
+  }
+>;
 
 function formatRunDate(date?: string) {
   if (!date) {
