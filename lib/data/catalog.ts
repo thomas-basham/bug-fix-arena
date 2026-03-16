@@ -290,6 +290,7 @@ export async function getChallengeCatalog({
 }: GetChallengeCatalogOptions = {}): Promise<ChallengeCatalogResult> {
   const fetchLimit = Math.max(limit ?? 0, mockChallenges.length, page * pageSize, 24);
   const persistedChallenges = await getPersistedGitHubChallenges();
+  // Synced database records are the most stable source for shared challenge URLs.
   const githubResult =
     persistedChallenges.length === 0
       ? await fetchGitHubChallenges({

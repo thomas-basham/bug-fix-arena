@@ -430,6 +430,9 @@ export async function runGitHubChallengeSync({
     let archivedCount = 0;
     let archivalSkipped = false;
 
+    // Archival is conservative on purpose. If discovery was truncated or only
+    // partially successful, older challenges stay active instead of being
+    // incorrectly marked inactive.
     if (githubResult.status === "ok" && !githubResult.isTruncated) {
       const staleChallengeWhere: Prisma.ChallengeWhereInput = {
         source: ChallengeSource.GITHUB,

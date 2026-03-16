@@ -30,6 +30,8 @@ export async function getSessionUserId() {
 }
 
 export async function getCurrentUser(): Promise<UserRecord | null> {
+  // The MVP uses a cookie-backed demo session so contributor workflows can be
+  // exercised before committing to full GitHub OAuth.
   const userId = await getSessionUserId();
 
   if (!userId) {

@@ -191,6 +191,8 @@ export async function fetchGitHubChallenges({
   perPage,
   maxPages = 1,
 }: FetchGitHubChallengesOptions): Promise<GitHubChallengeFetchResult> {
+  // Discovery is allowed to degrade partially: usable issue data is still worth
+  // returning even if repository enrichment or one label query is imperfect.
   const resolvedPerPage =
     perPage ??
     Math.max(
