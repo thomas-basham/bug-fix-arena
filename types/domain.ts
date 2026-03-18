@@ -1,28 +1,27 @@
 import type {
-  ChallengeCompletionMethod as PrismaChallengeCompletionMethod,
-  ChallengeEngagementStatus as PrismaChallengeEngagementStatus,
-  ChallengeSource as PrismaChallengeSource,
-  ChallengeSyncRunStatus as PrismaChallengeSyncRunStatus,
-  ChallengeStatus as PrismaChallengeStatus,
-  SubmissionStatus as PrismaSubmissionStatus,
-} from "@prisma/client";
-import type {
   ChallengeCatalogSort as ChallengeCatalogSortValue,
   ChallengeDifficulty,
 } from "@/lib/config/challenges";
 
-type LowercaseEnum<T extends string> = Lowercase<T>;
-
 export type ChallengeCatalogSort = ChallengeCatalogSortValue;
-export type ChallengeSource = LowercaseEnum<PrismaChallengeSource>;
-export type ChallengeStatus = LowercaseEnum<PrismaChallengeStatus>;
-export type SubmissionStatus = LowercaseEnum<PrismaSubmissionStatus>;
+export type ChallengeSource = "github" | "mock";
+export type ChallengeStatus = "open" | "review" | "archived";
+export type SubmissionStatus =
+  | "draft"
+  | "submitted"
+  | "under_review"
+  | "accepted"
+  | "rejected";
 export type ChallengeEngagementStatus =
-  LowercaseEnum<PrismaChallengeEngagementStatus>;
-export type ChallengeCompletionMethod =
-  LowercaseEnum<PrismaChallengeCompletionMethod>;
+  | "saved"
+  | "started"
+  | "completed";
+export type ChallengeCompletionMethod = "manual" | "automated";
 export type ChallengeSyncRunStatus =
-  LowercaseEnum<PrismaChallengeSyncRunStatus>;
+  | "running"
+  | "success"
+  | "partial"
+  | "failed";
 export type ChallengeCatalogNoticeTone = "muted" | "warning";
 
 export type RepositoryRecord = {
