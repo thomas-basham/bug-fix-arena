@@ -228,6 +228,9 @@ Notes:
 - if `GITHUB_TOKEN` is missing, the app still runs with the seeded mock catalog
 - in non-production environments, the admin sync page can fall back to any
   signed-in user if `ADMIN_GITHUB_USERNAMES` is left blank
+- Amplify SSR deployments also need those server-side variables forwarded into
+  `.env.production` during the build. This repo includes an `amplify.yml` file
+  that does that automatically for the runtime variables the app needs.
 
 ## Useful Scripts
 
