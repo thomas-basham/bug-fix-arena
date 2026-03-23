@@ -8,6 +8,7 @@ import { ChallengeSidebar } from "@/components/challenges/challenge-sidebar";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageContainer } from "@/components/layout/page-container";
 import { Badge } from "@/components/ui/badge";
+import { MarkdownContent } from "@/components/ui/markdown-content";
 import { SectionHeading } from "@/components/ui/section-heading";
 import {
   buildChallengeCatalogHref,
@@ -44,13 +45,6 @@ export async function generateMetadata({
   };
 }
 
-function splitIntoParagraphs(value: string) {
-  return value
-    .split(/\n\s*\n/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean);
-}
-
 export default async function ChallengeDetailPage({
   params,
   searchParams,
@@ -83,7 +77,6 @@ export default async function ChallengeDetailPage({
       buildChallengeDetailHref(relatedChallenge.slug, catalogState),
     ]),
   );
-  const issueContextParagraphs = splitIntoParagraphs(challenge.body);
 
   return (
     <AppShell>
@@ -168,19 +161,17 @@ export default async function ChallengeDetailPage({
                 description="Start with the normalized brief below, then read the full context before deciding on a fix strategy."
               />
               <div className="mt-6 rounded-[1.75rem] border border-slate-900/10 bg-slate-950 px-6 py-5 text-slate-100">
-                <p className="text-base leading-8 text-slate-100">
-                  {challenge.summary}
-                </p>
+                <MarkdownContent
+                  content={challenge.summary}
+                  tone="dark"
+                />
               </div>
-              <div className="mt-6 space-y-4">
-                {issueContextParagraphs.map((paragraph, index) => (
-                  <p
-                    key={`${index}-${paragraph.slice(0, 20)}`}
-                    className="text-base leading-8 text-slate-700"
-                  >
-                    {paragraph}
-                  </p>
-                ))}
+              <div className="mt-8">
+                <p className="mono-label">Full Issue Context</p>
+                <MarkdownContent
+                  content={challenge.body}
+                  className="mt-4"
+                />
               </div>
             </div>
 
